@@ -18,6 +18,11 @@ Usage and Examples
 
 We have included examples of all 3 MODES implemented in Raijin.
 
+* ATOM mode:
+
+* BOND mode:
+
+* COORDINATE mode:
 
 
 Installation instructions
@@ -26,6 +31,7 @@ Installation instructions
 First, make sure you have all required packages installed. For MDanalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
 
 After, just clone this repository into a folder of your choice:
+
     git clone https://github.com/mdpoleto/raijin.git
 
 To use Raijin easily, copy the directory pathway to Raijin folder and include an alias in your ~/.bashrc:
