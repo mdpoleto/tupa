@@ -14,7 +14,7 @@ Required packages:
 * Numpy      >= 1.2.x
 
 
-## Installation instructions
+##Installation instructions
 ------------------------------
 
 First, make sure you have all required packages installed. For MDanalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
@@ -36,7 +36,36 @@ Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage 
 ***Raijin*** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
-    raijin -template
+    raijin -template filename
+    raijin -template config.conf
+
+
+The configuration file usually contains:
+    [Elecfield Selection]
+    sele_elecfield      = (string)             [default: None]
+
+    [Target Selection]
+    mode                = (string)             [default: None]
+    selatom             = (string)             [default: None]
+    selbond1            = (string)             [default: None]
+    selbond2            = (string)             [default: None]
+    targetcoordinate    = [float,float,float]  [default: None]
+    remove_self         = (True/False)         [default: False]
+
+    [Solvent]
+    include_solvent     = (True/False)         [default: False]
+    solvent_cutoff      = (float)              [default: None]
+    solvent_selection   = (string)             [default: None]
+
+    [Time]
+    begintime           = (integer)            [default: 0]
+    endtime             = (integer)            [default: None]
+    dt                  = (integer)            [default: 1]
+    skip                = (integer)            [default: 1]
+
+
+A complete explanation of each option in the configuration file is available via the command:
+    raijin -h
 
 ***Raijin*** has 3 calculations MODES:
 
@@ -47,3 +76,6 @@ point. In ***BOND*** mode, the bond axis is used to calculate electric field ali
 define as **selbond1 ---> selbond2**.
 
 * In ***COORDINATE*** mode, a list of [X,Y,Z] coordinates will serve as target point in all trajectory frames.
+
+
+***IMPORTANT***:
