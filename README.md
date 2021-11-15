@@ -14,7 +14,7 @@ Required packages:
 * Numpy      >= 1.2.x
 
 
-##Installation instructions
+## Installation instructions
 ------------------------------
 
 First, make sure you have all required packages installed. For MDanalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
