@@ -36,7 +36,6 @@ Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage 
 ***Raijin*** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
-    raijin -template filename
     raijin -template config.conf
 
 
@@ -71,6 +70,7 @@ A complete explanation of each option in the configuration file is available via
 ***Raijin*** has 3 calculations MODES:
 
 * In ***ATOM*** mode, the coordinate of one atom will be tracked throughout the trajectory to serve as target point.
+If more than 1 atom is provided in the selection, the center of geometry (COG) is used as target position.
 
 * In ***BOND*** mode, the midpoint between 2 atoms will be tracked throughout the trajectory to serve as target
 point. In ***BOND*** mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
@@ -80,3 +80,5 @@ define as **selbond1 ---> selbond2**.
 
 
 ***IMPORTANT***:
+* All selections must be compatible with MDAnalysis.
+* If COORDINATE mode, make sure you have fixed translations and orientations in your trajectory.
