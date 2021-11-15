@@ -36,7 +36,7 @@ Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage 
 ***Raijin*** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
-   raijin -template
+    raijin -template
 
 ***Raijin*** has 3 calculations MODES:
 
