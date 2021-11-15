@@ -65,6 +65,7 @@ The configuration file usually contains:
 
 
 A complete explanation of each option in the configuration file is available via the command:
+
     raijin -h
 
 ***Raijin*** has 3 calculations MODES:
