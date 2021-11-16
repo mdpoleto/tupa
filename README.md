@@ -40,6 +40,7 @@ which can be obtained via the command:
 
 
 The configuration file usually contains:
+
     [Elecfield Selection]
     sele_elecfield      = (string)             [default: None]
 
