@@ -50,7 +50,7 @@ def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, h
 	normal = cpv.normalize(cpv.sub(xyz1, xyz2))
 
 	print("\n##############################")
-	print("Bond dipole unit vectors (r_hat)= ", normal)
+	print("Bond axis unit vectors (r_hat)= ", normal)
 	print("##############################\n")
 
 	if hlength < 0 or hradius < 0:

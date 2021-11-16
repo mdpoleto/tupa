@@ -50,8 +50,8 @@ skip                = 1       # How many frames do you want to skip?
 # 2- remove_self can be implicitely used by removing whatever contribution you
 # do not want from sele_elecfield. Be smart about your selections.
 # 3- the ATOM mode uses 1 atom to track its position througout trajectory and
-# calculates the Efield at its position. Useful if you need the Efield sensed
-# by a moving atom.
+# calculates the Efield at its position. If more than 1 atom is provided in selection,
+# the center of geometry (COG) is used as target position.
 # 4- The BOND mode uses 2 atoms to calculate the Efield at a position equidistant
 # to the 2 atoms selected. It uses the bond axis (default is selbond1 --> selbond2)
 # to check Efield alignment, which is useful for catalysis engineering.
@@ -99,10 +99,12 @@ help = """
                         values are: ATOM, BOND and COORDINATE.
 
                         In ATOM mode, the coordinate of one atom will be tracked
-                        throughout the trajectory to serve as target point.
+                        throughout the trajectory to serve as target point. If
+                        more than 1 atom is provided in the selection, the
+                        center of geometry (COG) is used as target position.
 
                         In BOND mode, the midpoint between 2 atoms will be
-                        tracked througout the trajectory to serve as target
+                        tracked throughout the trajectory to serve as target
                         point. In BOND mode, the bond axis is used to calculate
                         electric field alignment. By default, the bond axis is
                         define as selbond1 ---> selbond2.
