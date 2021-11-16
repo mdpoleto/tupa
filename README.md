@@ -3,8 +3,8 @@
 # RAIJIN : Electric field analysis for molecular simulations
 
 ## What is ***Raijin***?
-***Raijin*** is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
-the simulation box throughout MD trajectories. ***Raijin*** also includes a PyMOL plugin to visualize electric
+Raijin is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
+the simulation box throughout MD trajectories. Raijin also includes a PyMOL plugin to visualize electric
 field vectors in your simulation box.
 
 Required packages:
@@ -23,11 +23,15 @@ After, just clone this repository into a folder of your choice:
 
     git clone https://github.com/mdpoleto/raijin.git
 
-To easily call ***Raijin***, copy the directory pathway to its folder and include an alias in your ~/.bashrc:
+To use Raijin easily, copy the directory pathway to Raijin folder and include an alias in your ~/.bashrc:
 
     alias raijin="python /path/to/the/cloned/repository/raijin.py"
 
-## Raijin Usage
+To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
+Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
+
+
+## Usage and Examples
 ------------------------------
 ***Raijin*** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
@@ -78,20 +82,3 @@ define as **selbond1 ---> selbond2**.
 ***IMPORTANT***:
 * All selections must be compatible with MDAnalysis.
 * If COORDINATE mode, make sure you have fixed translations and orientations in your trajectory.
-
-
-## Raijin PyMOL plugin Usage
-
-To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
-Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
-
-Our plugin has 3 functions:
-
-* **draw_bond_axis**: allows user to draw a vector illustrating the bond axis. By default: selection1 ---> selection2:
-    draw_bond_axis resid 160 and name OG, resname LIG and name C1, color=yellow, gap=0.5
-
-* **efield_point**: allows user to draw a vector illustrating the Electric field at a given coordinate point.
-    efield_point [0,0,0], [-1.68931390e+02,1.64390616e+02,6.58994183e+00], color=magenta, scale=0.01
-
-* **efield_bond**: allows user to draw a vector illustrating the Electric field at the midpoint between 2 atoms.
-    efield_point resid 160 and name OG, resname LIG and name C1, [-1.68931390e+02,1.64390616e+02,6.58994183e+00], color=magenta, scale=0.01
