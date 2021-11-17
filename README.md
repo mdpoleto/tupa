@@ -1,6 +1,6 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/mdpoleto?style=social)](https://twitter.com/mdpoleto)
 
-
+------------------------------
 # RAIJIN : Electric field analysis for molecular simulations
 
 ## What is ***Raijin***?
@@ -14,9 +14,8 @@ Required packages:
 * Python     >= 3.x
 * Numpy      >= 1.2.x
 
-
-## Installation instructions
 ------------------------------
+## Installation instructions
 
 First, make sure you have all required packages installed. For MDanalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
 
@@ -33,7 +32,6 @@ Load the ***Raijin*** plugin and use it via command-line within PyMOL. To usage 
 
 
 ## Raijin Usage
-------------------------------
 ***Raijin*** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
@@ -88,27 +86,27 @@ rotations and translations.
 
 
 ## Raijin PyMOL Plugin
-------------------------------
 
 To install ***Raijin*** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
 Choose the ***pymol_raijin_plugin.py*** file and click Install.
 
-Our plugin has 3 functions:
+Our plugin has 3 functions that can be called via command line within PyMOL:
 
 * ***efield_point***: create a vector at a given atom or set of coordinates.
 ```
-efield_point resid 160 and name OG, efield=[-1.179143125383e+02, 1.503252874309e+02, 8.655535020725e+01], scale=0.01, color="red", name="efield_OG"
+efield_point resid 160 and name OG, efield=[-117.9143, 150.3252, 86.5553], scale=0.01, color="red", name="efield_OG"
 ```
 
 * ***efield_bond***: create a vector midway between 2 selected atoms.
 ```
-efield_point resid 160 and name OG, resname LIG and name C1, efield=[-9.42675084e+01, -9.67221993, 5.82067073e+01], scale=0.01, color="blue", name="efield_OG-C1"
+efield_point resid 160 and name OG, resname LIG and name C1, efield=[-94.2675, -9.6722, 58.2067], scale=0.01, color="blue", name="efield_OG-C1"
 ```
 
 * ***draw_bond_axis***: create a vector representing the axis between 2 atoms.
 ```
 draw_bond_axis resid 160 and name OG, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
+
 
 ## Citing Raijin
 
@@ -134,6 +132,4 @@ Bibtex entry:
 
 
 ## Contact information
-------------------------------
-
 E-mail: mdpoleto@vt.edu / jalemkul@vt.edu
