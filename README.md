@@ -109,3 +109,31 @@ efield_point resid 160 and name OG, resname LIG and name C1, efield=[-9.42675084
 ```
 draw_bond_axis resid 160 and name OG, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
+
+## Citing Raijin
+
+If you use ***Raijin*** in a scientific publication, we would appreciate citations to the following paper:
+
+Marcelo D. Polêto, Justin A. Lemkul. _RAIJIN : Electric field analysis for molecular simulations_, 2022.
+
+Bibtex entry:
+```
+@article{raijin2022,
+    author = {Pol\^{e}to, M D and Lemkul, J A},
+    title = "{RAIJIN : Electric field analysis for molecular simulations}",
+    journal = {},
+    year = {},
+    month = {},
+    issn = {},
+    doi = {},
+    url = {},
+    note = {},
+    eprint = {},
+}
+```
+
+
+## Contact information
+------------------------------
+
+E-mail: mdpoleto@vt.edu / jalemkul@vt.edu
