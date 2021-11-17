@@ -96,8 +96,7 @@ Choose the ***pymol_raijin_plugin.py*** file and click Install.
 Our plugin has 3 functions:
 
 * ***efield_point***: create a vector at a given atom or set of coordinates.
-
-    efield_point resid 160 and name OG, efield=[-1.179143125383e+02, 1.503252874309e+02, 8.655535020725e+01], scale=0.01, color='red', name='efield_OG'
+'''efield_point resid 160 and name OG, efield=[-1.179143125383e+02, 1.503252874309e+02, 8.655535020725e+01], scale=0.01, color='red', name="efield_OG" '''
 
 * ***efield_bond***: create a vector midway between 2 selected atoms.
 
