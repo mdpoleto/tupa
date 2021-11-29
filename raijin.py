@@ -152,10 +152,6 @@ try:
 except:
 	dt = 1
 
-try:
-	skip = int(config['Time']["skip"])
-except:
-	skip = 1
 
 ###############################################################################
 # Being verbose about parameters chosen
@@ -187,7 +183,6 @@ print("[Time]")
 print('begintime          = {}'.format(begintime))
 print('endtime            = {}'.format(endtime))
 print('dt                 = {}'.format(dt))
-print('skip               = {}'.format(skip))
 
 ###############################################################################
 def mag(vector):
@@ -350,7 +345,7 @@ if begintime == None:
 	begintime = 0
 if endtime == None:
 	endtime = len(u.trajectory)
-for ts in u.trajectory[begintime: endtime + skip: skip]:
+for ts in u.trajectory[begintime: endtime + dt:]:
 
 	########################################################
 	# Update environment and target selections

@@ -45,7 +45,6 @@ solvent_selection   = segid TIP3
 begintime           = None    # begintime and endtime allow the user to evaluate just a part of the trajectory
 endtime             = None
 dt                  = 10      # Frequency of frames written in your trajectory (in picosecond)
-skip                = 1       # How many frames do you want to skip?
 
 # IMPORTANT:
 # 1- All selections must be compatible with MDAnalysis
@@ -88,7 +87,6 @@ help = """
   begintime           = (integer)            [default: 0]
   endtime             = (integer)            [default: None]
   dt                  = (integer)            [default: 1]
-  skip                = (integer)            [default: 1]
 
 
 
@@ -141,6 +139,4 @@ help = """
   endtime             =
   dt                  = frequency in which frames were written in your trajectory.
                         dt is used to convert frame number into simulation time.
-  skip                = allow user to skip an amount of frames when analyzing
-                        the trajectory.
 """
