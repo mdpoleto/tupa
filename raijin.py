@@ -77,7 +77,8 @@ try:
 			sys.exit("""\n>>> ERROR: in "bond" mode, both selbond1 and selbond2 must be defined!\n""")
 	elif mode == "coordinate":
 		try:
-			targetcoordinate = str(config['Target Selection']["targetcoordinate"].strip('[]').split(","))
+			tmp_targetcoordinate = str(config['Target Selection']["targetcoordinate"]).strip('[]').split(",")
+			targetcoordinate = [float(item) for item in tmp_targetcoordinate]
 		except Exception as e2:
 			sys.exit("""\n>>> ERROR: in "coordinate" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
 	else:
@@ -86,17 +87,26 @@ try:
 except Exception as e2:
 	sys.exit("""\n>>> ERROR: "mode" must be defined as "atom", "bond" or coordinate!\n""")
 
-if mode == "atom" or mode == "bond":
+
+if mode == "coordinate":
 	try:
 		remove_self = str(config['Target Selection']["remove_self"]).lower()
-		if remove_self  == "false":
-			remove_self = False
-		else:
+		if remove_self  == "true":
 			remove_self = True
+			try:
+				remove_cutoff = float(config['Target Selection']["remove_cutoff"])
+			except Exception as e3:
+				sys.exit("""\n>>> ERROR: if "remove_self" is True, a removal cutoff (float) is expected!\n""")
+		else:
+			remove_self = False
+			remove_cutoff = 0
 	except:
 		remove_self = False
+		remove_cutoff = 0
 else:
 	remove_self = False
+	remove_cutoff = 0
+
 
 try:
 	include_solvent = str(config['Solvent']["include_solvent"].strip('"')).lower()
@@ -110,11 +120,11 @@ except:
 if include_solvent  == True:
 	try:
 		solvent_selection = str(config['Solvent']["solvent_selection"].strip('"'))
-	except Exception as e3:
+	except Exception as e4:
 		sys.exit("""\n>>> ERROR: solvent_selection must be a valid MDanalysis selection!\n""")
 	try:
 		solvent_cutoff    = float(config['Solvent']["solvent_cutoff"])
-	except Exception as e4:
+	except Exception as e5:
 		sys.exit("""\n>>> ERROR: solvent_cutoff must be a number!\n""")
 else:
 	pass
@@ -151,7 +161,7 @@ except:
 # Being verbose about parameters chosen
 print(raijin_help.header)
 print("########################################################")
-print(">>> Parameters used to run Electabuzz:")
+print(">>> Parameters used to run Raijin:")
 
 print('[Elecfield Selection]')
 print('sele_elecfield     = {}'.format(sele_elecfield))
@@ -297,25 +307,18 @@ elif mode == "bond":
 	print(">>> Target atoms = " + str(target_selection.atoms))
 	print(">>> Bond axis direction = " + str(selbond1.atoms[0].name) +"-"+ str(selbond1.resnames[0]) + str(selbond1.resnums[0]) + " --> " + str(selbond2.atoms[0].name) +"-"+ str(selbond2.resnames[0]) + str(selbond2.resnums[0]) + "\n")
 elif mode == "coordinate":
-	target_selection = modecoordinate
+	target_selection = targetcoordinate
 	print("\n>>> Running in COORDINATE mode!")
-	print(">>> Target XYZ position = " +  str(target_selection) + "\n")
+	print(">>> Target XYZ position = " +  str(target_selection))
+	if remove_self == True:
+		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
+
 else:
 	sys.exit("\n>>> MODE should be 'bond' or 'atom' or 'coordinate'!")
 
 # Making selection of atoms that exert the electric field
 elecfield_selection = u.select_atoms(sele_elecfield)
-remove_str = None
-if remove_self == True:
-	for atom in target_selection.atoms:
-		if atom in elecfield_selection.atoms:
-			elecfield_selection = u.select_atoms(sele_elecfield) - atom
-			remove_str = str(remove_str) +  str(atom) + ","
-else:
-	remove_str = None
 
-if remove_str != None:
-	print(">>> Removing self-contribution of: " + str(remove_str))
 
 ###############################################################################
 # Sanity check: atoms in target_selection should NOT be in elecfield_selection:
@@ -374,16 +377,34 @@ for ts in u.trajectory[begintime: endtime + skip: skip]:
 
 	elif mode == "coordinate":
 		refposition = target_selection
-
 	########################################################
-	# opening a temporary dictionary to hold the contribution of each residue
-	# for each frame
-	dict_res_tmp = {}
 
 	# Converting MDanalysis frames using defined dt
 	frame = int(ts.frame) + 1
 	time = "{:.0f}".format(frame*dt)
 	print("Time = " + str(time) + " ps... (Target position: " + str(refposition) + ")")
+
+
+	# Evaluate self_contribution removal
+	if mode == "coordinate":
+		# Take absolute coordinates from targetcoordinate
+		coordX, coordY, coordZ = refposition
+		# selects all atoms within a cutoff of a point in space (point X Y Z cutoff)
+		self_contribution = u.select_atoms("point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(remove_cutoff))
+
+		if len(self_contribution) > 0:
+			if remove_self == True:
+				print(""">>> Warning: removing self contribution of: """ + str(self_contribution.atoms))
+				# Remove self_contribution for this frame
+				enviroment_selection = enviroment_selection - self_contribution
+			else:
+				print(""">>> Warning: some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
+
+
+	########################################################
+	# opening a temporary dictionary to hold the contribution of each residue
+	# for each frame
+	dict_res_tmp = {}
 
 	xfield_list = []
 	yfield_list = []

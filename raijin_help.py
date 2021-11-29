@@ -31,12 +31,14 @@ selatom             = segid PROA and (resid 160 and name OG)
 selbond1            = segid PROA and (resid 160 and name OG)
 selbond2            = segid LIG and name C1
 targetcoordinate    = [0,0,0]
-remove_self         = True    # If target selection in sele_elecfield, remove it
-						  # from sele_elecfield (True of False)
+remove_self         = True    # For COORDINATE mode only, wether remove the
+                              # contribution of self within a cutoff of the coordinate
+remove_cutoff       = 2       # in Angstrom
+
 
 [Solvent]
 include_solvent     = True    # or False
-solvent_cutoff      = 20      # in Angstrom
+solvent_cutoff      = 10      # in Angstrom
 solvent_selection   = segid TIP3
 
 [Time]
@@ -47,8 +49,9 @@ skip                = 1       # How many frames do you want to skip?
 
 # IMPORTANT:
 # 1- All selections must be compatible with MDAnalysis
-# 2- remove_self can be implicitely used by removing whatever contribution you
-# do not want from sele_elecfield. Be smart about your selections.
+# 2- remove_self only works in COORDINATE mode. For ATOM or BOND mode, analogous
+# behavior can be created by removing whatever contribution you do not want from
+# sele_elecfield. Be smart about your selections.
 # 3- the ATOM mode uses 1 atom to track its position througout trajectory and
 # calculates the Efield at its position. If more than 1 atom is provided in selection,
 # the center of geometry (COG) is used as target position.
@@ -74,10 +77,11 @@ help = """
   selbond2            = (string)             [default: None]
   targetcoordinate    = [float,float,float]  [default: None]
   remove_self         = (True/False)         [default: False]
+  remove_cutoff       = (float)              [default: 2 A ]
 
   [Solvent]
   include_solvent     = (True/False)         [default: False]
-  solvent_cutoff      = (float)              [default: None]
+  solvent_cutoff      = (float)              [default: 10 A]
   solvent_selection   = (string)             [default: None]
 
   [Time]
@@ -116,11 +120,12 @@ help = """
   selbond1            = 1st selection used in BOND mode (compatible with MDanalysis)
   selbond2            = 2nd selection used in BOND mode (compatible with MDanalysis)
   targetcoordinate    = list of [X,Y,Z] coordinates (in Angstroms)
-  remove_self         = True or False. Remove the contribution of atoms defined
-                        in selatom or selbond1/selbond2 to the calculated electric
-                        field. In practice, the behavior of remove_self = True is
-                        identical of removing selatom or selbond1/selbond2 when
-                        defining sele_elecfield.
+  remove_self         = True or False. Only works for COORDINATE mode. It removes
+                        the contribution of atoms defined in sele_elecfield within
+                        within a determined cutoff to the electric field.
+  remove_cutoff       = cutoff used to determine wether to remove the self
+                        contribution or not.
+
 
   [Solvent]
   include_solvent     = True or False. Either account for the contribution of
