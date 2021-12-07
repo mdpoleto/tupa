@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #Marcelo D. Poleto
-#APRIL 2022
+#DEC 2021
 
 import sys, os, argparse, timeit
 import MDAnalysis as mda
 import numpy as np
 import configparser as cp
+sys.dont_write_bytecode = True
 
 import raijin_help
 
 # Parse user input and options
 ap = argparse.ArgumentParser(description=raijin_help.header,
                              formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="python Raijin.py [options]",
-							 add_help=False,
-							 exit_on_error=False)
+                             usage="python raijin.py [options]",
+                             add_help=False)
 ap._optionals.title = 'Options'
 ap.add_argument('-h', '--help', action="store_true", help='Show this message and exit')
 ap.add_argument('-top', type=str, default=None, required=False, metavar='',
@@ -31,6 +31,8 @@ ap.add_argument('-template', type=str, default=None, required=False, metavar='',
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
+print(raijin_help.header)
+
 
 if cmd.help is True:
 	ap.print_help()
@@ -96,7 +98,8 @@ if mode == "coordinate":
 			try:
 				remove_cutoff = float(config['Target Selection']["remove_cutoff"])
 			except Exception as e3:
-				sys.exit("""\n>>> ERROR: if "remove_self" is True, a removal cutoff (float) is expected!\n""")
+				print("""\n>>> WARNING: "remove_cutoff" was not provided! Using the default value (1 Angstrom)!...\n""")
+				remove_cutoff = 1
 		else:
 			remove_self = False
 			remove_cutoff = 0
@@ -155,7 +158,6 @@ except:
 
 ###############################################################################
 # Being verbose about parameters chosen
-print(raijin_help.header)
 print("########################################################")
 print(">>> Parameters used to run Raijin:")
 
@@ -171,7 +173,9 @@ elif mode == "bond":
 	print('selbond2           = {}'.format(selbond2))
 elif mode == "coordinate":
 	print('targetcoordinate   = {}'.format(targetcoordinate))
-print('remove_self        = {}'.format(remove_self))
+	if remove_self == True:
+		print('remove_self        = {}'.format(remove_self))
+		print('remove_cutoff      = {}'.format(remove_cutoff))
 print()
 print("[Solvent]")
 print('include_solvent    = {}'.format(include_solvent))
@@ -193,6 +197,16 @@ def mag(vector):
 def unit_vector(vector):
 	""" Returns the unit vector of the vector.  """
 	return vector / np.linalg.norm(vector)
+
+def alignment(v1,v2):
+	# V2 is the total reference
+	aligned = abs(v1/v2)
+	return aligned
+
+def projection(v1,v2):
+	#projection_u_on_v = (np.dot(u, v)/np.dot(v, v))*v
+	proj = v2*(np.dot(v1, v2)/np.dot(v2,v2))
+	return proj
 
 def angle_between(v1, v2):
 
@@ -235,14 +249,8 @@ def calc_EletricProperties(atom,refposition):
 	# E = k*Q/r2; charge = coulomb ; r = meter, then: Ef = N/C
 	Ef = rhat*(k*charge/rmag**2)
 	Ef = Ef*(10**(-8)) #Convert to MegaVolt per centimeter (usual unit in literature)
-
-	if mode == "bond":
-		#projection_u_on_v = (np.dot(u, v)/np.dot(v, v))*v
-		proj_Ef_on_rbond = rbond_vec*(np.dot(Ef, rbond_vec)/np.dot(rbond_vec,rbond_vec))
-
-		return Ef, proj_Ef_on_rbond
-	else:
-		pass
+	# 1 MV/cm equals 10**8 V/m (the SI unit), 1.944*10**(−4) atomic units, or 0.0480 kcal/(mol*Debye)
+	# 10 MV/cm = 1 V/nm
 
 	return Ef
 
@@ -256,27 +264,27 @@ else:
 
 out = open(outdir + "ElecField.dat",'w')
 out.write("""@    title "Electric Field"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
-out.write("#time  Magnitude   Efield_X   Efield_Y   Efield_Z\n")
+out.write("#time      Magnitude                     Efield_X                      Efield_Y                     Efield_Z\n")
 out.write("@type xy\n")
 
 outres = open(outdir + "ElecField_per_residue.dat",'w')
 outres.write("""@    title "Magnitude of Electric Field"\n@    xaxis  label "Residues"\n@    yaxis  label "MV/cm"\n""")
-outres.write("#time  EField_Magnitude\n")
+outres.write("#time     EField_per_residue            Std.Deviation         EField_residue_alignement   Std.Deviation\n")
 outres.write("@type xydy\n")
 
 if mode == "bond":
 	outproj = open(outdir + "ElecField_proj_onto_bond.dat",'w')
 	outproj.write("""@    title "Electric Field Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
-	outproj.write("#time  Xcomp   Ycomp   Zcomp   Magnitude   Direction\n")
+	outproj.write("#time      Magnitude                     Efield_X                      Efield_Y                     Efield_Z                   Direction\n")
 	outproj.write("@type xy\n")
 
 	outalig = open(outdir + "ElecField_alignement.dat",'w')
 	outalig.write("""@    title "Electric Field Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "Percentage"\n""")
-	outalig.write("#time  Alignment_percentage\n")
+	outalig.write("#time     Alignment_percentage\n")
 	outalig.write("@type xy\n")
 
 	outrbond = open(outdir + "bond_axis_info.dat", "w")
-	outrbond.write("#time    rbondvec    rbondmag    rbondhat\n")
+	outrbond.write("#time     rbondvec_in_meters                                          rbond_magnitude               rbond_unit_vector\n")
 
 ###############################################################################
 # Creating Universe and making selections
@@ -336,7 +344,7 @@ dict_res_total = {}
 for atom in elecfield_selection.atoms:
 	residue = str(atom.resname) + "_" + str(atom.resid)
 	if residue not in dict_res_total.keys():
-		dict_res_total[residue] = [[],[],[],[]]
+		dict_res_total[residue] = [ [],[],[],[],[] ]
 
 ###############################################################################
 print("\n########################################################")
@@ -404,9 +412,6 @@ for ts in u.trajectory[begintime: endtime + dt:]:
 	xfield_list = []
 	yfield_list = []
 	zfield_list = []
-	xproj_list = []
-	yproj_list = []
-	zproj_list = []
 
 	# Iterating over all atoms in selection to get their contributions
 	for atom in enviroment_selection.atoms:
@@ -416,23 +421,16 @@ for ts in u.trajectory[begintime: endtime + dt:]:
 		else:
 			pass
 
-		if mode == "bond":
-			Ef_xyz, proj_Ef_on_rbond = calc_EletricProperties(atom, refposition)
-			xproj, yproj, zproj = proj_Ef_on_rbond
-			xproj_list.append(xproj)
-			yproj_list.append(yproj)
-			zproj_list.append(zproj)
-		else:
-			Ef_xyz = calc_EletricProperties(atom, refposition)
-		Efx, Efy, Efz = Ef_xyz
+		Ef_xyz = calc_EletricProperties(atom, refposition)
 
+		Efx, Efy, Efz = Ef_xyz
 		xfield_list.append(Efx)
 		yfield_list.append(Efy)
 		zfield_list.append(Efz)
 
-		# upload temp dict keys (residues) to include the contribution of each
-		# atom in the residue. We will update the dictionary for each frame
-		# later (line 470)
+		# upload keys (residues) in dict_res_tmp to include the contribution of
+		# each atom in a residue. We will update the dictionary for each residue
+		# in this frame on line 487
 		if residue in dict_res_total.keys():
 			res_tmp_x, res_tmp_y, res_tmp_z = dict_res_tmp[residue]
 			res_tmp_x.append(Efx)
@@ -449,27 +447,28 @@ for ts in u.trajectory[begintime: endtime + dt:]:
 	totalEf  = np.array([totalEfx, totalEfy, totalEfz])
 	totalEfmag = mag(totalEf)
 
-	# write the Efield output
-	lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
-	out.write(lineEfield)
-
 	########################################################
 	# Write information exclusive to BOND mode
 	if mode == "bond":
 		# Calculate projection
-		totalprojx = np.sum(xproj_list)
-		totalprojy = np.sum(yproj_list)
-		totalprojz = np.sum(zproj_list)
-		totalproj = np.array([totalprojx, totalprojy, totalprojz])
+		Efprojection = projection(totalEf,rbond_vec)
+		Efproj_x, Efproj_y, Efproj_z = Efprojection
+
 		# Calculate projection direction
-		proj_direction = np.cos(angle_between(totalEf,rbond_hat))/abs(np.cos(angle_between(totalEf,rbond_hat)))
-		totalproj = totalproj*proj_direction
-		totalprojmag = mag(totalproj)
-		# Write projection
-		lineproj = str(time).ljust(10,' ') + str("{:.12e}".format(totalprojx)).ljust(30,' ') + str("{:.12e}".format(totalprojy)).ljust(30,' ') + str("{:.12e}".format(totalprojz)).ljust(30,' ') + str("{:.12e}".format(totalprojmag)).ljust(30,' ') + str(proj_direction) + "\n"
+		proj_direction = np.cos(angle_between(totalEf,rbond_vec))/abs(np.cos(angle_between(totalEf,rbond_vec)))
+		# Update the Efield sign depending on the direction
+		totalEfmag = totalEfmag*proj_direction
+		Efprojectionmag = mag(Efprojection)*proj_direction
+
+		# write Efield
+		lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
+		out.write(lineEfield)
+		# Write Efield projection
+		lineproj = str(time).ljust(10,' ') + str("{:.12e}".format(Efprojectionmag)).ljust(30,' ') + str("{:.12e}".format(Efproj_x)).ljust(30,' ') + str("{:.12e}".format(Efproj_y)).ljust(30,' ') + str("{:.12e}".format(Efproj_z)).ljust(30,' ') + str(proj_direction) + "\n"
 		outproj.write(lineproj)
+
 		# Calculate and write percentage of projection alignment
-		aligned = totalprojmag/totalEfmag
+		aligned = alignment(Efprojectionmag,totalEfmag)
 		linealig = str(time).ljust(10,' ') + str("{:.12e}".format(aligned)).ljust(30,' ') + "\n"
 		outalig.write(linealig)
 
@@ -478,36 +477,53 @@ for ts in u.trajectory[begintime: endtime + dt:]:
 		rhx, rhy, rhz = rbond_hat
 		list1 = "[" + str(rvx) + "," + str(rvy) + "," + str(rvz) + "]"
 		list2 = "[" + str(rhx) + "," + str(rhy) + "," + str(rhz) + "]"
-		outrbond.write(str(time).ljust(10,' ') +  list1  + "        " + str(mag(rbond_vec)) + "        " + list2 + "\n")
+		bondline = str(time).ljust(10,' ') +  list1.ljust(60,' ') +  str(mag(rbond_vec)).ljust(30,' ') + list2 + "\n"
+		outrbond.write(bondline)
+
+	else:
+		# write Efield
+		lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
+		out.write(lineEfield)
 
 	########################################################
 	# Update dictionary with the contribution of each residue with the
 	# values of Efield of each residue in this frame
 	for r, comp in dict_res_tmp.items():
 		res_efield_x, res_efield_y, res_efield_z = comp
-
+		# values for the entire residue in THIS FRAME
 		resEfx = np.sum(res_efield_x)
 		resEfy = np.sum(res_efield_y)
 		resEfz = np.sum(res_efield_z)
-		resEfmag = mag(np.array([resEfx, resEfy, resEfz]))
+		resEf  = np.array([resEfx, resEfy, resEfz])
+		resEfmag = mag(resEf)
+		# calculate the projection and alignment for each residue
+		if mode == "bond":
+			resEfproj = projection(resEf,rbond_vec)
+		else:
+			resEfproj = projection(resEf,totalEf)
+		resEfalignment = alignment(resEfproj,totalEf)
 
-		resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp = dict_res_total[r]
+		# Update the total dictionary with values of THIS FRAME
+		resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp = dict_res_total[r]
 		resEfx_tmp.append(resEfx)
 		resEfy_tmp.append(resEfy)
 		resEfz_tmp.append(resEfz)
 		resEfmag_tmp.append(resEfmag)
-		dict_res_total[r] = [resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp]
+		res_alignment_tmp.append(resEfalignment)
+		dict_res_total[r] = [resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp]
 
 ###############################################################################
 # Calculate the average contribution of each residue throughout trajectory
 for r, comp in dict_res_total.items():
 	r = r.partition('_')[2] # ignore resname and keep resid
-	res_efield_x, res_efield_y, res_efield_z, resEfmag = comp
+	res_efield_x, res_efield_y, res_efield_z, resEfmag, resEfaligned = comp
 	resEfmag_avg = np.average(resEfmag)
 	resEfmag_std = np.std(resEfmag)
+	resEfalig_avg = np.average(resEfaligned)
+	resEfalig_std = np.std(resEfaligned)
 
 	# write contribution of each residue
-	lineres = str(r).ljust(10,' ') + str("{:.12e}".format(resEfmag_avg)).ljust(30,' ') + str("{:.12e}".format(resEfmag_std)).ljust(30,' ') + "\n"
+	lineres = str(r).ljust(10,' ') + str("{:.12e}".format(resEfmag_avg)).ljust(30,' ') + str("{:.12e}".format(resEfmag_std)).ljust(30,' ') + str("{:.6f}".format(resEfalig_avg)).ljust(20,' ') + str("{:.6f}".format(resEfalig_std)).ljust(30,' ') + "\n"
 	outres.write(lineres)
 
 ###############################################################################

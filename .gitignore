@@ -1,6 +1,9 @@
 # Personal files
 *.pyc
 *.conf
+*.png
+*.svg
+*.pse
 
 # Prerequisites
 *.d

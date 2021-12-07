@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+#Marcelo D. Poleto
+#DEC 2021
+
 from chempy import cpv
 from pymol import cmd, cgo, CmdException
 import numpy as np

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #Marcelo D. Poleto
-#APRIL 2022
+#DEC 2021
 
 
 header = """
@@ -33,7 +33,7 @@ selbond2            = segid LIG and name C1
 targetcoordinate    = [0,0,0]
 remove_self         = True    # For COORDINATE mode only, wether remove the
                               # contribution of self within a cutoff of the coordinate
-remove_cutoff       = 2       # in Angstrom
+remove_cutoff       = 1       # in Angstrom
 
 
 [Solvent]
@@ -56,12 +56,12 @@ dt                  = 10      # Frequency of frames written in your trajectory (
 # the center of geometry (COG) is used as target position.
 # 4- The BOND mode uses 2 atoms to calculate the Efield at a position equidistant
 # to the 2 atoms selected. It uses the bond axis (default is selbond1 --> selbond2)
-# to check Efield alignment, which is useful for catalysis engineering.
+# to check Efield alignment, which is useful for catalysis engineering. Note that
+# a bond dipole direction is defined to be from positive to negative.
 # 5- If COORDINATE mode, make sure you have fixed translations and
 # orientations in your trajectory.
 """
 
-# I NEED TO WORK ON THE HELP HERE!
 help = """
 
   # Configuration File Inputs
@@ -76,7 +76,7 @@ help = """
   selbond2            = (string)             [default: None]
   targetcoordinate    = [float,float,float]  [default: None]
   remove_self         = (True/False)         [default: False]
-  remove_cutoff       = (float)              [default: 2 A ]
+  remove_cutoff       = (float)              [default: 1 A ]
 
   [Solvent]
   include_solvent     = (True/False)         [default: False]
