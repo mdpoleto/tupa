@@ -29,7 +29,7 @@ def make_config_file(filename, iteration):
 	content = """
 [Elecfield Selection]
 # The atoms from which we calculate the electric field
-sele_elecfield      = segid PROA or segid PROB or segid PROC or segid PROD
+sele_elecfield      = segid PRO* or segid MEMB
 
 [Target Selection]
 # Provide the target selection for the MODE of you choice
@@ -41,6 +41,8 @@ remove_self         = False   # For COORDINATE mode only, wether remove the
 
 [Solvent]
 include_solvent     = False    # or False
+solvent_cutoff      = 10
+solvent_selection   = segid TIP3
 
 [Time]
 dt                  = 10      # Frequency of frames written in your trajectory (in picosecond)
@@ -54,17 +56,17 @@ dt                  = 10      # Frequency of frames written in your trajectory (
 ######
 o = open("efield_Zaxis.dat", 'w')
 
-for i in range(15,61):
+for i in range(26,73):
 
 	i = str(i)
 	make_config_file("config.conf", i)
 
 	if not os.path.exists("Z_" + i):
-		os.system("python ../../raijin/raijin.py -top 3ouf.c36.nowater.psf -traj 3ouf.c36.nowater.dcd -conf config.conf -outdir Z_" + i)
+		os.system("python ~/Dropbox/raijin/raijin/raijin.py -top 3ouf_c36.equil.psf -traj 3ouf_c36.traj.dcd -conf config.conf -outdir Z_" + i)
 ######
 
 ######
-for i in range(15,61):
+for i in range(26,73):
 
 	i = str(i)
 	file = "Z_" + i + "/ElecField.dat"

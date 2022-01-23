@@ -1,11 +1,11 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/mdpoleto?style=social)](https://twitter.com/mdpoleto)
 
 ------------------------------
-# RAIJIN : Electric field analysis for molecular simulations
+# TUPÃ : Electric field analysis for molecular simulations
 
-## What is Raijin?
-**Raijin** is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
-the simulation box throughout MD trajectories. **Raijin** also includes a PyMOL plugin to visualize electric
+## What is TUPÃ?
+**TUPÃ** is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
+the simulation box throughout MD trajectories. **TUPÃ** also includes a PyMOL plugin to visualize electric
 field vectors in your simulation box.
 
 Required packages:
@@ -21,39 +21,39 @@ First, make sure you have all required packages installed. For MDanalysis instal
 
 After, just clone this repository into a folder of your choice:
 
-    git clone https://github.com/mdpoleto/raijin.git
+    git clone https://github.com/mdpoleto/tupã.git
 
-To use **Raijin** easily, copy the directory pathway to **Raijin** folder and include an alias in your ~/.bashrc:
+To use **TUPÃ** easily, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
 
-    alias raijin="python /path/to/the/cloned/repository/raijin.py"
+    alias tupã="python /path/to/the/cloned/repository/TUPÃ.py"
 
 To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
-Load the **Raijin** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
+Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
 
 
-## Raijin Usage
-**Raijin** calculations are based on parameters that are provided via a configuration file,
+## TUPÃ Usage
+**TUPÃ** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
-    raijin -template config.conf
+    tupã -template config.conf
 
 
 The configuration file usually contains:
-    [Elecfield Selection]
-    sele_elecfield      = (string)             [default: None]
+    [Environment Selection]
+    sele_environment      = (string)             [default: None]
 
-    [Target Selection]
+    [Probe Selection]
     mode                = (string)             [default: None]
     selatom             = (string)             [default: None]
     selbond1            = (string)             [default: None]
     selbond2            = (string)             [default: None]
     targetcoordinate    = [float,float,float]  [default: None]
     remove_self         = (True/False)         [default: False]
-    remove_cutoff       = (float)              [default: 2 A ]
+    remove_cutoff       = (float)              [default: 1 A ]
 
     [Solvent]
     include_solvent     = (True/False)         [default: False]
-    solvent_cutoff      = (float)              [default: None]
+    solvent_cutoff      = (float)              [default: 10 A]
     solvent_selection   = (string)             [default: None]
 
     [Time]
@@ -64,9 +64,9 @@ The configuration file usually contains:
 
 A complete explanation of each option in the configuration file is available via the command:
 
-    raijin -h
+    tupã -h
 
-**Raijin** has 3 calculations MODES:
+**TUPÃ** has 3 calculations MODES:
 
 * In **ATOM** mode, the coordinate of one atom will be tracked throughout the trajectory to serve as target point.
 If more than 1 atom is provided in the selection, the center of geometry (COG) is used as target position. An example
@@ -81,14 +81,17 @@ An example is provided HERE.
 
 ***IMPORTANT***:
 * All selections must be compatible with MDAnalysis syntax.
+* **TUPÃ does not handle PBC images yet!** Trajectories MUST be re-imaged before running TUPÃ.
+* **Solvent** molecules in PBC images are selected if within the cutoff. This is achieved by applying the *around* selection feature in MDAnalysis.
+* **TUPÃ does not account for Particle Mesh Ewald (PME) electrostatic contributions!** To minimize such effects, center your target as well as possible.
 * If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for
 rotations and translations.
 
 
-## Raijin PyMOL Plugin
+## TUPÃ PyMOL Plugin
 
-To install **Raijin** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
-Choose the *pymol_raijin_plugin.py* file and click Install.
+To install **TUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
+Choose the *pyTUPÃ.py* file and click Install.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
@@ -108,15 +111,15 @@ draw_bond_axis resid 160 and name OG, resname LIG and name C1, gap=0.5, color="g
 ```
 
 --------------------------
-## Citing Raijin
+## Citing TUPÃ
 
-If you use **Raijin** in a scientific publication, we would appreciate citations to the following paper:
+If you use **TUPÃ** in a scientific publication, we would appreciate citations to the following paper:
 
 Marcelo D. Polêto, Justin A. Lemkul. _RAIJIN: Electric field analysis for molecular simulations_, 2022.
 
 Bibtex entry:
 ```
-@article{raijin2022,
+@article{TUPÃ2022,
     author = {Pol\^{e}to, M D and Lemkul, J A},
     title = "{RAIJIN : Electric field analysis for molecular simulations}",
     journal = {},

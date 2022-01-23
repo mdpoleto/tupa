@@ -31,7 +31,7 @@ def make_avg(file):
 
 
 ######
-for i in range(15,61):
+for i in range(26,73):
 
 	i = str(i)
 	file = "Z_" + i + "/ElecField.dat"

@@ -4,6 +4,7 @@
 *.png
 *.svg
 *.pse
+*.agr
 
 # Prerequisites
 *.d
