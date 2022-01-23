@@ -98,17 +98,17 @@ Our plugin has 3 functions that can be called via command line within PyMOL:
 
 * **efield_point**: create a vector at a given atom or set of coordinates.
 ```
-efield_point resid 160 and name OG, efield=[-117.9143, 150.3252, 86.5553], scale=0.01, color="red", name="efield_OG"
+efield_point segid LIG and name O1, efield=[-117.9143, 150.3252, 86.5553], scale=0.01, color="red", name="efield_OG"
 ```
 
 * **efield_bond**: create a vector midway between 2 selected atoms.
 ```
-efield_point resid 160 and name OG, resname LIG and name C1, efield=[-94.2675, -9.6722, 58.2067], scale=0.01, color="blue", name="efield_OG-C1"
+efield_point resname LIG and name O1, resname LIG and name C1, efield=[-94.2675, -9.6722, 58.2067], scale=0.01, color="blue", name="efield_OG-C1"
 ```
 
 * **draw_bond_axis**: create a vector representing the axis between 2 atoms.
 ```
-draw_bond_axis resid 160 and name OG, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
+draw_bond_axis resname LIG and name O1, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
 
 --------------------------
