@@ -21,11 +21,11 @@ First, make sure you have all required packages installed. For MDanalysis instal
 
 After, just clone this repository into a folder of your choice:
 
-    git clone https://github.com/mdpoleto/tupã.git
+    git clone https://github.com/mdpoleto/tupa.git
 
 To use **TUPÃ** easily, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
 
-    alias tupã="python /path/to/the/cloned/repository/TUPÃ.py"
+    alias tupa="python /path/to/the/cloned/repository/TUPA.py"
 
 To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
 Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
@@ -35,7 +35,7 @@ Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage ins
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 
-    tupã -template config.conf
+    tupa -template config.conf
 
 
 The configuration file usually contains:
@@ -64,7 +64,7 @@ The configuration file usually contains:
 
 A complete explanation of each option in the configuration file is available via the command:
 
-    tupã -h
+    tupa -h
 
 **TUPÃ** has 3 calculations MODES:
 
@@ -121,7 +121,7 @@ Bibtex entry:
 ```
 @article{TUPÃ2022,
     author = {Pol\^{e}to, M D and Lemkul, J A},
-    title = "{RAIJIN : Electric field analysis for molecular simulations}",
+    title = "{TUPÃ : Electric field analyses for molecular simulations}",
     journal = {},
     year = {},
     month = {},
