@@ -1,10 +1,11 @@
 # Personal files
 *.pyc
 *.conf
-*.png
+Examples/*/*.png
 *.svg
 *.pse
 *.agr
+*.xcf
 
 # Prerequisites
 *.d

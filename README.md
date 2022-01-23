@@ -1,7 +1,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/mdpoleto?style=social)](https://twitter.com/mdpoleto)
 
 ------------------------------
-# TUPÃ : Electric field analysis for molecular simulations
+![alt text](https://github.com/mdpoleto/tupa/LOGO/TUPÃ_LOGO.png)
 
 ## What is TUPÃ?
 **TUPÃ** is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
