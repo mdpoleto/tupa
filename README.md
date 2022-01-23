@@ -40,6 +40,7 @@ which can be obtained via the command:
 
 
 The configuration file usually contains:
+
     [Environment Selection]
     sele_environment      = (string)             [default: None]
 
