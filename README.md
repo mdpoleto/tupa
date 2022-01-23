@@ -75,7 +75,7 @@ If more than 1 atom is provided in the selection, the center of geometry (COG) i
 is provided HERE.
 
 * In **BOND** mode, the midpoint between 2 atoms will be tracked throughout the trajectory to serve as target
-point. In **BOND** mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
+point. In this mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
 define as *selbond1 ---> selbond2*. An example is provided HERE.
 
 * In **COORDINATE** mode, a list of [X,Y,Z] coordinates will serve as target point in all trajectory frames.
@@ -86,13 +86,12 @@ An example is provided HERE.
 * **TUPÃ does not handle PBC images yet!** Trajectories MUST be re-imaged before running TUPÃ.
 * **Solvent** molecules in PBC images are selected if within the cutoff. This is achieved by applying the *around* selection feature in MDAnalysis.
 * **TUPÃ does not account for Particle Mesh Ewald (PME) electrostatic contributions!** To minimize such effects, center your target as well as possible.
-* If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for
-rotations and translations.
+* If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for rotations and translations.
 
 
-## TUPÃ PyMOL Plugin
+## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-To install **TUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
+To install *pyTUPÃ* plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
 Choose the *pyTUPÃ.py* file and click Install.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
@@ -117,7 +116,7 @@ draw_bond_axis resid 160 and name OG, resname LIG and name C1, gap=0.5, color="g
 
 If you use **TUPÃ** in a scientific publication, we would appreciate citations to the following paper:
 
-Marcelo D. Polêto, Justin A. Lemkul. _RAIJIN: Electric field analysis for molecular simulations_, 2022.
+Marcelo D. Polêto, Justin A. Lemkul. *TUPÃ: Electric field analysis for molecular simulations*, 2022.
 
 Bibtex entry:
 ```
