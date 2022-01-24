@@ -28,8 +28,8 @@ ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
 ap.add_argument('-template', type=str, default=None, required=False, metavar='',
                 help='Create a template for input configuration file (default: config_sample.dat)')
-#ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
-#                help='Choose a time (in ps) to dump the coordinates from.')
+ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
+                help='Choose a time (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
@@ -48,6 +48,7 @@ traj_file     = cmd.traj
 outdir        = cmd.outdir
 configinput   = cmd.config
 template      = cmd.template
+dumptime      = cmd.dumptime
 ###############################################################################
 # Stablishing default config values
 config = cp.ConfigParser(allow_no_value=True, inline_comment_prefixes="#")
@@ -361,15 +362,14 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	if include_solvent == True:
 		if mode == "atom":
-			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection)
+			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
 		elif mode == "bond":
-			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection)
+			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
 		elif mode == "coordinate":
-			enviroment_selection = elecfield_selection + u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection)
+			enviroment_selection = elecfield_selection + u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 	else:
 		enviroment_selection = elecfield_selection
 
-	#enviroment_selection.write(outdir + "environment.pdb")
 	########################################################
 
 	# Converting MDanalysis frames using defined dt
@@ -377,6 +377,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	time = "{:.0f}".format(frame*dt)
 	print("Time = " + str(time) + " ps... (Target position: " + str(refposition) + ")")
 
+	# Dumping a specific frame
+	if dumptime != None:
+		if float(dumptime) == float(time):
+			print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "environment_" + time + "ps.pdb!")
+			enviroment_selection.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
 	if mode == "coordinate":
