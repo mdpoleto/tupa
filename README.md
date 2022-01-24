@@ -59,8 +59,6 @@ The configuration file usually contains:
     solvent_selection   = (string)             [default: None]
 
     [Time]
-    begintime           = (integer)            [default: 0]
-    endtime             = (integer)            [default: None]
     dt                  = (integer)            [default: 1]
 
 

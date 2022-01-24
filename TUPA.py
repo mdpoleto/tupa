@@ -28,6 +28,8 @@ ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
 ap.add_argument('-template', type=str, default=None, required=False, metavar='',
                 help='Create a template for input configuration file (default: config_sample.dat)')
+ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
+                help='Choose a time (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
@@ -140,24 +142,6 @@ try:
 	dt = int(config['Time']["dt"])
 except:
 	dt = 1
-
-try:
-	begintime = str(config['Time']["begintime"]).lower()
-	if  begintime == "none":
-		begintime = None
-	else:
-		begintime = int(begintime)
-except:
-	begintime = None
-
-try:
-	endtime = str(config['Time']["endtime"]).lower()
-	if  endtime == "none":
-		endtime = None
-	else:
-		endtime = int(endtime)
-except:
-	endtime = None
 
 
 ###############################################################################
@@ -353,11 +337,8 @@ for atom in elecfield_selection.atoms:
 ###############################################################################
 print("\n########################################################")
 print("\n>>> Calculating Electric Field at time:")
-if begintime == None:
-	begintime = 0
-if endtime == None:
-	endtime = len(u.trajectory)
-for ts in u.trajectory[begintime: endtime:]:
+
+for ts in u.trajectory[0: len(u.trajectory):]:
 
 	########################################################
 	# Update environment and target selections

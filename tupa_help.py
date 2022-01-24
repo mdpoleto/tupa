@@ -43,8 +43,6 @@ solvent_cutoff      = 10      # in Angstrom
 solvent_selection   = segid TIP3
 
 [Time]
-begintime           = None    # begintime and endtime allow the user to evaluate just a part of the trajectory
-endtime             = None
 dt                  = 10      # Frequency of frames written in your trajectory (in picosecond)
 
 # IMPORTANT:
@@ -85,8 +83,6 @@ help = """
   solvent_selection   = (string)             [default: None]
 
   [Time]
-  begintime           = (integer)            [default: 0]
-  endtime             = (integer)            [default: None]
   dt                  = (integer)            [default: 1]
 
 
@@ -135,9 +131,6 @@ help = """
                         electric field calculation.
 
   [Time]
-  begintime           = begintime and endtime (in ps) allow the user to analyze
-                        only a chunk of the entire trajectory.
-  endtime             =
   dt                  = frequency in which frames were written in your trajectory.
                         dt is used to convert frame number into simulation time.
 """
