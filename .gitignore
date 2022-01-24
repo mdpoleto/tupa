@@ -2,8 +2,7 @@
 *.pyc
 *.conf
 Examples/*/*.png
-LOGO/graph*
-LOGO/TUPÃ.png
+not2git
 *.svg
 *.pse
 *.agr
