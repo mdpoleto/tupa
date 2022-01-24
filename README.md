@@ -5,20 +5,20 @@
 ![alt text](https://github.com/mdpoleto/tupa/blob/main/LOGO/TUPÃ_LOGO.png "TUPÃ")
 
 ## What is TUPÃ?
-**TUPÃ** is a python algorithm that employs MDanalysis engine to calculate Electric Field at any point inside
+**TUPÃ** is a python algorithm that employs MDAnalysis engine to calculate electric fields at any point inside
 the simulation box throughout MD trajectories. **TUPÃ** also includes a PyMOL plugin to visualize electric
-field vectors in your simulation box.
+field vectors together with molecules.
 
 Required packages:
 
-* MDanalysis >= 1.0.0
+* MDAnalysis >= 1.0.0
 * Python     >= 3.x
 * Numpy      >= 1.2.x
 
 ------------------------------
 ## Installation instructions
 
-First, make sure you have all required packages installed. For MDanalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
+First, make sure you have all required packages installed. For MDAnalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
 
 After, just clone this repository into a folder of your choice:
 
