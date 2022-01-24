@@ -2,6 +2,8 @@
 *.pyc
 *.conf
 Examples/*/*.png
+LOGO/graph*
+LOGO/TUPÃ.png
 *.svg
 *.pse
 *.agr
