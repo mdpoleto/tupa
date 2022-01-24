@@ -28,8 +28,8 @@ ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
 ap.add_argument('-template', type=str, default=None, required=False, metavar='',
                 help='Create a template for input configuration file (default: config_sample.dat)')
-ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
-                help='Choose a time (in ps) to dump the coordinates from.')
+#ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
+#                help='Choose a time (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
@@ -172,8 +172,6 @@ if include_solvent == True:
 	print('solvent_cutoff     = {}'.format(solvent_cutoff))
 print()
 print("[Time]")
-print('begintime          = {}'.format(begintime))
-print('endtime            = {}'.format(endtime))
 print('dt                 = {}'.format(dt))
 
 ###############################################################################
