@@ -307,12 +307,12 @@ if mode == "atom":
 		print("\n>>> Running in ATOM mode!")
 		print(">>> Target atom = "+ str(target_selection.atoms[0].name) +"-"+ str(target_selection.resnames[0]) + str(target_selection.resnums[0]) + "\n")
 elif mode == "bond":
-	selbond1 = u.select_atoms(selbond1)
-	selbond2 = u.select_atoms(selbond2)
-	target_selection = selbond1 + selbond2
+	bond1 = u.select_atoms(selbond1)
+	bond2 = u.select_atoms(selbond2)
+	target_selection = bond1 + bond2
 	print("\n>>> Running in BOND mode!")
 	print(">>> Target atoms = " + str(target_selection.atoms))
-	print(">>> Bond axis direction = " + str(selbond1.atoms[0].name) +"-"+ str(selbond1.resnames[0]) + str(selbond1.resnums[0]) + " --> " + str(selbond2.atoms[0].name) +"-"+ str(selbond2.resnames[0]) + str(selbond2.resnums[0]) + "\n")
+	print(">>> Bond axis direction = " + str(bond1.atoms[0].name) +"-"+ str(bond1.resnames[0]) + str(bond1.resnums[0]) + " --> " + str(bond2.atoms[0].name) +"-"+ str(bond2.resnames[0]) + str(bond2.resnums[0]) + "\n")
 elif mode == "coordinate":
 	target_selection = targetcoordinate
 	print("\n>>> Running in COORDINATE mode!")
@@ -368,8 +368,8 @@ for ts in u.trajectory[begintime: endtime:]:
 			refposition = target_selection.atoms[0].position
 
 	elif mode == "bond":
-		position1 = selbond1.atoms[0].position
-		position2 = selbond2.atoms[0].position
+		position1 = bond1.atoms[0].position
+		position2 = bond2.atoms[0].position
 
 		rbond_vec = (position2 - position1) # axis from ref1 to ref2
 		rbond_vec = rbond_vec*(10**(-10)) #convert from Angstrom to meter
@@ -390,7 +390,7 @@ for ts in u.trajectory[begintime: endtime:]:
 	else:
 		enviroment_selection = elecfield_selection
 
-
+	#enviroment_selection.write(outdir + "environment.pdb")
 	########################################################
 
 	# Converting MDanalysis frames using defined dt

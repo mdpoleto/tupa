@@ -6,8 +6,8 @@
 
 header = """
 	###########################################################################
-	#                 Tupã - Electric Field analyses algorithm                #
-	#                             Tupã 1.0.0 (2022)                           #
+	#                 TUPÃ - Electric Field analyses algorithm                #
+	#                             TUPÃ 1.0.0 (2022)                           #
 	#                                                                         #
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
