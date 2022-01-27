@@ -61,6 +61,11 @@ The configuration file usually contains:
     [Time]
     dt                  = (integer)            [default: 1]
 
+    [Box Info]
+    redefine_box        = Whether or not provide explicit box dimension information.
+    boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
+                          and C are the edge lengths (in Angstrom). Alpha, Beta
+                          and Gamma are the box internal angles (in degrees)
 
 A complete explanation of each option in the configuration file is available via the command:
 

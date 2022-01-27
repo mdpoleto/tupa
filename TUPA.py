@@ -122,28 +122,42 @@ try:
 	include_solvent = str(config['Solvent']["include_solvent"].strip('"')).lower()
 	if include_solvent == "true":
 		include_solvent   = True
+		try:
+			solvent_selection = str(config['Solvent']["solvent_selection"].strip('"'))
+		except Exception as e4:
+			sys.exit("""\n>>> ERROR: solvent_selection must be a valid MDanalysis selection!\n""")
+		try:
+			solvent_cutoff    = float(config['Solvent']["solvent_cutoff"])
+		except Exception as e5:
+			sys.exit("""\n>>> ERROR: solvent_cutoff must be a number!\n""")
 	else:
 		include_solvent   = False
 except:
 	include_solvent = False
 
-if include_solvent  == True:
-	try:
-		solvent_selection = str(config['Solvent']["solvent_selection"].strip('"'))
-	except Exception as e4:
-		sys.exit("""\n>>> ERROR: solvent_selection must be a valid MDanalysis selection!\n""")
-	try:
-		solvent_cutoff    = float(config['Solvent']["solvent_cutoff"])
-	except Exception as e5:
-		sys.exit("""\n>>> ERROR: solvent_cutoff must be a number!\n""")
-else:
-	pass
 
 try:
 	dt = int(config['Time']["dt"])
 except:
 	dt = 1
 
+try:
+	redefine_box = str(config['Box Info']["redefine_box"].strip('"')).lower()
+	if redefine_box == "true":
+		redefine_box = True
+		try:
+			tmp_boxdim = str(config['Box Info']["boxdimensions"].strip('[]')).split(",")
+			boxdimensions = [float(item) for item in tmp_boxdim]
+			if len(boxdimensions) != 6:
+				sys.exit("""\n>>> ERROR: boxdimensions should contain [a,b,c, alpha, beta, gamma]!\n""")
+		except Exception as e6:
+			sys.exit("""\n>>> ERROR: To redifine the box, boxdimensions must be provided!\n""")
+	else:
+		redefine_box = False
+		boxdimensions = None
+except:
+	redefine_box = False
+	boxdimensions = None
 
 ###############################################################################
 # Being verbose about parameters chosen
@@ -151,7 +165,7 @@ print("########################################################")
 print(">>> Parameters used to run Tupã:")
 
 print('[Environment Selection]')
-print('sele_environment     = {}'.format(sele_elecfield))
+print('sele_environment   = {}'.format(sele_elecfield))
 print()
 print("[Probe Selection]")
 print('mode               = {}'.format(mode))
@@ -241,6 +255,33 @@ def calc_EletricProperties(atom,refposition):
 
 	return Ef
 
+def pack_around(atom_group, center):
+	"""
+	Translate atoms to their periodic image the closest to a given point.
+
+	The function assumes that the center is in the main periodic image.
+	"""
+	# Copy the atom_group a
+	tmp_group = atom_group
+	# Get the box for the current frame
+	box = atom_group.universe.dimensions
+	# The next steps assume that all the atoms are in the same
+	# periodic image, so let's make sure it is the case
+	atom_group.pack_into_box()
+	# AtomGroup.positions is a property rather than a simple attribute.
+	# It does not always propagate changes very well so let's work with
+	# a copy of the coordinates for now.
+	positions = atom_group.positions.copy()
+	# Identify the *coordinates* to translate.
+	sub = positions - center
+	culprits = np.where(np.sqrt(sub**2) > box[:3] / 2)
+	# Actually translate the coordinates.
+	positions[culprits] -= (u.dimensions[culprits[1]]
+	                        * np.sign(sub[culprits]))
+	# Copy the atom_group a
+	tmp_group.positions = positions
+
+	return tmp_group
 ###############################################################################
 # Opening output files
 outdir = outdir + "/"
@@ -280,7 +321,23 @@ if top_file != None and traj_file != None:
 else:
 	sys.exit("""\n>>> ERROR: Topology or Trajectory files missing. Are you not forgetting something?!\n""")
 
+# This is us being very verbose so people actually know what is happening
 print("\n########################################################")
+# Check whether trajectory file has box dimension information and redifine if requested
+if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
+	if redefine_box == True:
+		print("\n>>> Redifining box dimensions to:", boxdimensions)
+		always_redefine_box_flag = True
+		u.dimensions = boxdimensions
+	else:
+		sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
+elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
+		print("\n>>> Redifining box dimensions to: ", boxdimensions)
+		always_redefine_box_flag = True
+		u.dimensions = boxdimensions
+else:
+	always_redefine_box_flag = False
+
 if mode == "atom":
 	target_selection = u.select_atoms(selatom)
 	if len(target_selection) > 1:
@@ -308,7 +365,6 @@ else:
 
 # Making selection of atoms that exert the electric field
 elecfield_selection = u.select_atoms(sele_elecfield)
-
 
 ###############################################################################
 # Sanity check: atoms in target_selection should NOT be in elecfield_selection:
@@ -339,6 +395,11 @@ print("\n>>> Calculating Electric Field at time:")
 
 for ts in u.trajectory[0: len(u.trajectory):]:
 
+	if always_redefine_box_flag == True:
+		u.dimensions = boxdimensions
+	else:
+		pass
+
 	########################################################
 	# Update environment and target selections
 	if mode == "atom":
@@ -362,11 +423,14 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	if include_solvent == True:
 		if mode == "atom":
-			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
 		elif mode == "bond":
-			enviroment_selection = elecfield_selection + u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
 		elif mode == "coordinate":
-			enviroment_selection = elecfield_selection + u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+
+		tmp_selection = pack_around(tmp_selection, refposition) # <<<<<------ DOUBLE CHECK THIS FUNCTION! WE MIGHT NEED A BETTER WAY!
+		enviroment_selection = elecfield_selection + tmp_selection
 	else:
 		enviroment_selection = elecfield_selection
 
@@ -387,17 +451,16 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	if mode == "coordinate":
 		# Take absolute coordinates from targetcoordinate
 		coordX, coordY, coordZ = refposition
-		# selects all atoms within a cutoff of a point in space (point X Y Z cutoff)
-		self_contribution = u.select_atoms("point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(remove_cutoff))
+		# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
+		self_contribution = enviroment_selection.select_atoms("point  " + str(coordX) + "  " + str(coordY) + "  " + str(coordZ) + "  " + str(remove_cutoff) + "  ", periodic=True)
 
-		if len(self_contribution) > 0:
+		if len(self_contribution.atoms) > 0:
 			if remove_self == True:
-				print(""">>> Warning: removing self contribution of: """ + str(self_contribution.atoms))
+				print(""">>> Warning! Removing self contribution of: """ + str(self_contribution.atoms))
 				# Remove self_contribution for this frame
 				enviroment_selection = enviroment_selection - self_contribution
 			else:
-				print(""">>> Warning: some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
-
+				print(""">>> Warning! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
 
 	########################################################
 	# opening a temporary dictionary to hold the contribution of each residue
