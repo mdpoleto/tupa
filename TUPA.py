@@ -175,7 +175,7 @@ elif mode == "bond":
 	print('selbond1           = {}'.format(selbond1))
 	print('selbond2           = {}'.format(selbond2))
 elif mode == "coordinate":
-	print('probecoordinate   = {}'.format(probecoordinate))
+	print('probecoordinate    = {}'.format(probecoordinate))
 	if remove_self == True:
 		print('remove_self        = {}'.format(remove_self))
 		print('remove_cutoff      = {}'.format(remove_cutoff))
