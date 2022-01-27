@@ -367,11 +367,12 @@ else:
 elecfield_selection = u.select_atoms(sele_elecfield)
 
 ###############################################################################
-# Sanity check: atoms in target_selection should NOT be in elecfield_selection:
+# Sanity check: atoms in target_selection should NOT be in elecfield_selection
+# if tmprefposition == target_selection.center_of_geometry(). Checking that...
 if mode == "atom" or mode == "bond":
 	for atom in target_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			sys.exit(">>> ERROR: Target atom(s) within ElecField selection! Consider using 'remove_self = True'.\n>>> Exiting...\n")
+			print(">>> WARNING: Target atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -421,6 +422,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	elif mode == "coordinate":
 		refposition = target_selection
 
+
+	# IF I AM RECENTERING STUFF, THE PLACE TO DO IT IS HERE, BEFORE THE AROUND
+	# SELECTION SO IT CAN SELECT THE MAXIMUM NUMBER OF ATOMS
+
+
 	if include_solvent == True:
 		if mode == "atom":
 			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
@@ -448,19 +454,18 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			enviroment_selection.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
-	if mode == "coordinate":
-		# Take absolute coordinates from targetcoordinate
-		coordX, coordY, coordZ = refposition
-		# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
-		self_contribution = enviroment_selection.select_atoms("point  " + str(coordX) + "  " + str(coordY) + "  " + str(coordZ) + "  " + str(remove_cutoff) + "  ", periodic=True)
+	# Take absolute coordinates from targetcoordinate
+	coordX, coordY, coordZ = refposition
+	# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
+	self_contribution = enviroment_selection.select_atoms("point  " + str(coordX) + "  " + str(coordY) + "  " + str(coordZ) + "  " + str(remove_cutoff) + "  ", periodic=True)
 
-		if len(self_contribution.atoms) > 0:
-			if remove_self == True:
-				print(""">>> Warning! Removing self contribution of: """ + str(self_contribution.atoms))
-				# Remove self_contribution for this frame
-				enviroment_selection = enviroment_selection - self_contribution
-			else:
-				print(""">>> Warning! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
+	if len(self_contribution.atoms) > 0:
+		if remove_self == True:
+			print(""">>> Warning! Removing self contribution of: """ + str(self_contribution.atoms))
+			# Remove self_contribution for this frame
+			enviroment_selection = enviroment_selection - self_contribution
+		else:
+			print(""">>> Warning! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
 
 	########################################################
 	# opening a temporary dictionary to hold the contribution of each residue

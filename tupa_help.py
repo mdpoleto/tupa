@@ -26,7 +26,7 @@ sele_environment      = segid PROA
 
 [Probe Selection]
 # Provide the probe selection for the MODE of you choice
-# e.g. if bond is used, then modebond1 and modebond2 must be defined.
+# e.g. if bond is used, then selbond1 and selbond2 must be defined.
 mode                = ATOM    # ATOM or BOND or COORDINATE
 selatom             = segid PROA and (resid 160 and name OG)
 selbond1            = segid PROA and (resid 160 and name OG)
