@@ -24,7 +24,7 @@ After, just clone this repository into a folder of your choice:
 
     git clone https://github.com/mdpoleto/tupa.git
 
-To use **TUPÃ** easily, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
+To easily use **TUPÃ**, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
 
     alias tupa="python /path/to/the/cloned/repository/TUPA.py"
 

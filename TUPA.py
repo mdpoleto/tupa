@@ -369,10 +369,13 @@ elecfield_selection = u.select_atoms(sele_elecfield)
 ###############################################################################
 # Sanity check: atoms in target_selection should NOT be in elecfield_selection
 # if tmprefposition == target_selection.center_of_geometry(). Checking that...
+sanity_flag = False
 if mode == "atom" or mode == "bond":
 	for atom in target_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			print(">>> WARNING: Target atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
+			sanity_flag = True
+if sanity_flag == True:
+	print(">>> WARNING: Target atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
