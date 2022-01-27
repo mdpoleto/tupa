@@ -339,7 +339,14 @@ elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
 		always_redefine_box_flag = True
 		u.dimensions = boxdimensions
 else:
-	always_redefine_box_flag = False
+	if redefine_box == True:
+		print("\n>>> Redifining box dimensions to:", boxdimensions)
+		always_redefine_box_flag = True
+		u.dimensions = boxdimensions
+	else:
+		always_redefine_box_flag = False
+
+	# CHECK THE BOX THING ABOVE!!!!
 
 if mode == "atom":
 	probe_selection = u.select_atoms(selatom)
@@ -407,6 +414,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	else:
 		pass
 
+	print(u.dimensions)
 	########################################################
 	# Update environment and target selections
 	if mode == "atom":
@@ -427,10 +435,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	elif mode == "coordinate":
 		refposition = probe_selection
-
-	listprobe = "[" + str(refposition[0]) + "," + str(refposition[1]) + "," + str(refposition[2]) + "]"
-	lineprobe = str(time).ljust(10,' ') +  listprobe.ljust(60,' ') + "\n"
-	outprobe.write(lineprobe)
 
 	# IF I AM RECENTERING STUFF, THE PLACE TO DO IT IS HERE, BEFORE THE AROUND
 	# SELECTION SO IT CAN SELECT THE MAXIMUM NUMBER OF ATOMS
@@ -455,6 +459,10 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	frame = int(ts.frame) + 1
 	time = "{:.0f}".format(frame*dt)
 	print("Time = " + str(time) + " ps... (Probe position: " + str(refposition) + ")")
+
+	listprobe = "[" + str(refposition[0]) + "," + str(refposition[1]) + "," + str(refposition[2]) + "]"
+	lineprobe = str(time).ljust(10,' ') +  listprobe.ljust(60,' ') + "\n"
+	outprobe.write(lineprobe)
 
 	# Dumping a specific frame
 	if dumptime != None:
