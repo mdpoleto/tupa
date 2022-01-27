@@ -31,7 +31,7 @@ mode                = ATOM    # ATOM or BOND or COORDINATE
 selatom             = segid PROA and (resid 160 and name OG)
 selbond1            = segid PROA and (resid 160 and name OG)
 selbond2            = segid LIG and name C1
-targetcoordinate    = [0,0,0]
+probecoordinate     = [0,0,0]
 remove_self         = True    # For COORDINATE mode only, whether remove the
                               # contribution of self within a cutoff of the coordinate
 remove_cutoff       = 1       # in Angstrom
@@ -73,7 +73,7 @@ help = """
   selatom             = (string)             [default: None]
   selbond1            = (string)             [default: None]
   selbond2            = (string)             [default: None]
-  targetcoordinate    = [float,float,float]  [default: None]
+  probecoordinate     = [float,float,float]  [default: None]
   remove_self         = (True/False)         [default: False]
   remove_cutoff       = (float)              [default: 1 A ]
 
@@ -101,23 +101,23 @@ help = """
                         values are: ATOM, BOND and COORDINATE.
 
                         In ATOM mode, the coordinate of one atom will be tracked
-                        throughout the trajectory to serve as target point. If
+                        throughout the trajectory to serve as probe point. If
                         more than 1 atom is provided in the selection, the
-                        center of geometry (COG) is used as target position.
+                        center of geometry (COG) is used as probe position.
 
                         In BOND mode, the midpoint between 2 atoms will be
-                        tracked throughout the trajectory to serve as target
+                        tracked throughout the trajectory to serve as probe
                         point. In BOND mode, the bond axis is used to calculate
                         electric field alignment. By default, the bond axis is
                         define as selbond1 ---> selbond2.
 
                         In COORDINATE mode, a list of [X,Y,Z] coordinates will
-                        serve as target point in all trajectory frames.
+                        serve as probe point in all trajectory frames.
 
   selatom             = selection used in ATOM mode (compatible with MDanalysis)
   selbond1            = 1st selection used in BOND mode (compatible with MDanalysis)
   selbond2            = 2nd selection used in BOND mode (compatible with MDanalysis)
-  targetcoordinate    = list of [X,Y,Z] coordinates (in Angstroms)
+  probecoordinate     = list of [X,Y,Z] coordinates (in Angstroms)
   remove_self         = True or False. Only works for COORDINATE mode. It removes
                         the contribution of atoms defined in sele_environment within
                         within a determined cutoff to the electric field.

@@ -49,7 +49,7 @@ The configuration file usually contains:
     selatom             = (string)             [default: None]
     selbond1            = (string)             [default: None]
     selbond2            = (string)             [default: None]
-    targetcoordinate    = [float,float,float]  [default: None]
+    probecoordinate     = [float,float,float]  [default: None]
     remove_self         = (True/False)         [default: False]
     remove_cutoff       = (float)              [default: 1 A ]
 
@@ -73,22 +73,22 @@ A complete explanation of each option in the configuration file is available via
 
 **TUPÃ** has 3 calculations MODES:
 
-* In **ATOM** mode, the coordinate of one atom will be tracked throughout the trajectory to serve as target point.
-If more than 1 atom is provided in the selection, the center of geometry (COG) is used as target position. An example
+* In **ATOM** mode, the coordinate of one atom will be tracked throughout the trajectory to serve as probe point.
+If more than 1 atom is provided in the selection, the center of geometry (COG) is used as probe position. An example
 is provided HERE.
 
-* In **BOND** mode, the midpoint between 2 atoms will be tracked throughout the trajectory to serve as target
+* In **BOND** mode, the midpoint between 2 atoms will be tracked throughout the trajectory to serve as probe
 point. In this mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
 define as *selbond1 ---> selbond2*. An example is provided HERE.
 
-* In **COORDINATE** mode, a list of [X,Y,Z] coordinates will serve as target point in all trajectory frames.
+* In **COORDINATE** mode, a list of [X,Y,Z] coordinates will serve as probe point in all trajectory frames.
 An example is provided HERE.
 
 ***IMPORTANT***:
 * All selections must be compatible with MDAnalysis syntax.
 * **TUPÃ does not handle PBC images yet!** Trajectories MUST be re-imaged before running TUPÃ.
 * **Solvent** molecules in PBC images are selected if within the cutoff. This is achieved by applying the *around* selection feature in MDAnalysis.
-* **TUPÃ does not account for Particle Mesh Ewald (PME) electrostatic contributions!** To minimize such effects, center your target as well as possible.
+* **TUPÃ does not account for Particle Mesh Ewald (PME) electrostatic contributions!** To minimize such effects, center your probe as well as possible.
 * If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for rotations and translations.
 
 

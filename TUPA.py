@@ -86,8 +86,8 @@ try:
 			sys.exit("""\n>>> ERROR: in "bond" mode, both selbond1 and selbond2 must be defined!\n""")
 	elif mode == "coordinate":
 		try:
-			tmp_targetcoordinate = str(config['Probe Selection']["targetcoordinate"]).strip('[]').split(",")
-			targetcoordinate = [float(item) for item in tmp_targetcoordinate]
+			tmp_probecoordinate = str(config['Probe Selection']["probecoordinate"]).strip('[]').split(",")
+			probecoordinate = [float(item) for item in tmp_probecoordinate]
 		except Exception as e2:
 			sys.exit("""\n>>> ERROR: in "coordinate" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
 	else:
@@ -175,7 +175,7 @@ elif mode == "bond":
 	print('selbond1           = {}'.format(selbond1))
 	print('selbond2           = {}'.format(selbond2))
 elif mode == "coordinate":
-	print('targetcoordinate   = {}'.format(targetcoordinate))
+	print('probecoordinate   = {}'.format(probecoordinate))
 	if remove_self == True:
 		print('remove_self        = {}'.format(remove_self))
 		print('remove_cutoff      = {}'.format(remove_cutoff))
@@ -339,24 +339,24 @@ else:
 	always_redefine_box_flag = False
 
 if mode == "atom":
-	target_selection = u.select_atoms(selatom)
-	if len(target_selection) > 1:
+	probe_selection = u.select_atoms(selatom)
+	if len(probe_selection) > 1:
 		print("\n>>> Running in ATOM mode!")
-		print(">>> Target atoms (COG) = "+ str(target_selection.atoms) + "\n")
+		print(">>> Probe atoms (COG) = "+ str(probe_selection.atoms) + "\n")
 	else:
 		print("\n>>> Running in ATOM mode!")
-		print(">>> Target atom = "+ str(target_selection.atoms[0].name) +"-"+ str(target_selection.resnames[0]) + str(target_selection.resnums[0]) + "\n")
+		print(">>> Probe atom = "+ str(probe_selection.atoms[0].name) +"-"+ str(probe_selection.resnames[0]) + str(probe_selection.resnums[0]) + "\n")
 elif mode == "bond":
 	bond1 = u.select_atoms(selbond1)
 	bond2 = u.select_atoms(selbond2)
-	target_selection = bond1 + bond2
+	probe_selection = bond1 + bond2
 	print("\n>>> Running in BOND mode!")
-	print(">>> Target atoms = " + str(target_selection.atoms))
+	print(">>> Probe atoms = " + str(probe_selection.atoms))
 	print(">>> Bond axis direction = " + str(bond1.atoms[0].name) +"-"+ str(bond1.resnames[0]) + str(bond1.resnums[0]) + " --> " + str(bond2.atoms[0].name) +"-"+ str(bond2.resnames[0]) + str(bond2.resnums[0]) + "\n")
 elif mode == "coordinate":
-	target_selection = targetcoordinate
+	probe_selection = probecoordinate
 	print("\n>>> Running in COORDINATE mode!")
-	print(">>> Target XYZ position = " +  str(target_selection))
+	print(">>> Probe XYZ position = " +  str(probe_selection))
 	if remove_self == True:
 		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
 
@@ -367,15 +367,15 @@ else:
 elecfield_selection = u.select_atoms(sele_elecfield)
 
 ###############################################################################
-# Sanity check: atoms in target_selection should NOT be in elecfield_selection
-# if tmprefposition == target_selection.center_of_geometry(). Checking that...
+# Sanity check: atoms in probe_selection should NOT be in elecfield_selection
+# if tmprefposition == probe_selection.center_of_geometry(). Checking that...
 sanity_flag = False
 if mode == "atom" or mode == "bond":
-	for atom in target_selection.atoms:
+	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
 			sanity_flag = True
 if sanity_flag == True:
-	print(">>> WARNING: Target atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
+	print(">>> WARNING: Probe atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -407,10 +407,10 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	########################################################
 	# Update environment and target selections
 	if mode == "atom":
-		if len(target_selection) > 1:
-			refposition = target_selection.center_of_geometry()
+		if len(probe_selection) > 1:
+			refposition = probe_selection.center_of_geometry()
 		else:
-			refposition = target_selection.atoms[0].position
+			refposition = probe_selection.atoms[0].position
 
 	elif mode == "bond":
 		position1 = bond1.atoms[0].position
@@ -423,7 +423,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		refposition = (position1 + position2)/2 #midway for both atoms
 
 	elif mode == "coordinate":
-		refposition = target_selection
+		refposition = probe_selection
 
 
 	# IF I AM RECENTERING STUFF, THE PLACE TO DO IT IS HERE, BEFORE THE AROUND
@@ -438,7 +438,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		elif mode == "coordinate":
 			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 
-		tmp_selection = pack_around(tmp_selection, refposition) # <<<<<------ DOUBLE CHECK THIS FUNCTION! WE MIGHT NEED A BETTER WAY!
+		tmp_selection = pack_around(tmp_selection, refposition) # <<<<<------ DOUBLE CHECK THIS FUNCTION! It is compatible with rectangular boxes only!
 		enviroment_selection = elecfield_selection + tmp_selection
 	else:
 		enviroment_selection = elecfield_selection
@@ -448,7 +448,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	# Converting MDanalysis frames using defined dt
 	frame = int(ts.frame) + 1
 	time = "{:.0f}".format(frame*dt)
-	print("Time = " + str(time) + " ps... (Target position: " + str(refposition) + ")")
+	print("Time = " + str(time) + " ps... (Probe position: " + str(refposition) + ")")
 
 	# Dumping a specific frame
 	if dumptime != None:
@@ -457,7 +457,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			enviroment_selection.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
-	# Take absolute coordinates from targetcoordinate
+	# Take absolute coordinates from probecoordinate
 	coordX, coordY, coordZ = refposition
 	# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
 	self_contribution = enviroment_selection.select_atoms("point  " + str(coordX) + "  " + str(coordY) + "  " + str(coordZ) + "  " + str(remove_cutoff) + "  ", periodic=True)
