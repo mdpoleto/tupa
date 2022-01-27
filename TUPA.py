@@ -300,6 +300,9 @@ outres.write("""@    title "Magnitude of Electric Field"\n@    xaxis  label "Res
 outres.write("#time     EField_per_residue            Std.Deviation         EField_residue_alignement   Std.Deviation\n")
 outres.write("@type xydy\n")
 
+outprobe = open(outdir + "probe_info.dat", "w")
+outprobe.write("#time     probe_coordinates\n")
+
 if mode == "bond":
 	outproj = open(outdir + "ElecField_proj_onto_bond.dat",'w')
 	outproj.write("""@    title "Electric Field Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
@@ -425,6 +428,9 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	elif mode == "coordinate":
 		refposition = probe_selection
 
+	listprobe = "[" + str(refposition[0]) + "," + str(refposition[1]) + "," + str(refposition[2]) + "]"
+	lineprobe = str(time).ljust(10,' ') +  listprobe.ljust(60,' ') + "\n"
+	outprobe.write(lineprobe)
 
 	# IF I AM RECENTERING STUFF, THE PLACE TO DO IT IS HERE, BEFORE THE AROUND
 	# SELECTION SO IT CAN SELECT THE MAXIMUM NUMBER OF ATOMS
