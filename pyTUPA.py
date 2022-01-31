@@ -32,12 +32,55 @@ def mag(vector):
 	mag = np.linalg.norm(vector)
 	return mag
 
+def get_vec(array):
+	if array.startswith('['):
+		v = array.strip("[]").split(",")
+		vecx = float(v[0])
+		vecy = float(v[1])
+		vecz = float(v[2])
+		vector = [vecx, vecy, vecz]
+		return vector
+	else:
+		print("Warning! Could not make a vector from the efield array!")
+		return False
+
 def get_coord(v):
-	if not isinstance(v, str):
-		return v
-	if v.startswith('['):
-		return cmd.safe_list_eval(v)
-	return cmd.get_atom_coords(v)
+	# An ugly workaround to issue an error in case neither cases are contemplated
+	position = False
+
+	try:
+		# if it is a coordinate array
+		if v.startswith('['):
+			position = cmd.safe_list_eval(v)
+			return position
+		else:
+			pass
+	except:
+		pass
+
+	try:
+		# if it is a pk1 or a syntax selection
+		nAtoms = cmd.count_atoms(v)
+		if nAtoms==1:
+			# atom coordinates
+			position = cmd.get_atom_coords(v)
+			return position
+		elif nAtoms > 1:
+			# more than one atom --> use selection center of geometry
+			centroid = cpv.get_null()
+			model = cmd.get_model(v)
+			for a in model.atom:
+				centroid = cpv.add(centroid, a.coord)
+
+			position = cpv.scale(centroid, 1. / nAtoms)
+			return position
+		else:
+			pass
+	except:
+		pass
+
+	return position
+
 
 def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, hradius=0.2, color='gray60', name=''):
 	radius, gap = float(radius), float(gap)
@@ -104,20 +147,13 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=[1.0, 1.0, 1.0], scal
 	xyz2 = get_coord(bond_atom2) # get the coordinates which the arrow will be drawn to
 	xyz = cpv.average(xyz1, xyz2)
 
-	def get_vec(v):
-		if v.startswith('['):
-			v = v.strip("[]").split(",")
-			vecx = float(v[0])
-			vecy = float(v[1])
-			vecz = float(v[2])
-			vector = [vecx, vecy, vecz]
-			return vector
-
 	efield = get_vec(efield)
 	efield = cpv.scale(efield,scale)
-	efieldhat = cpv.normalize(efield) # create the unit vector of vector efield
+	efieldhat = cpv.normalize(efield) # arrow head 2 times more width than the cylinder
 
 	print("\n##############################")
+	print("Probe position = ", xyz)
+	print()
 	print("Electric Field (scaled)= ", efield)
 	print()
 	print("Electric Field unit vectors (Ef_hat)= ", efieldhat)
@@ -147,7 +183,7 @@ def efield_point(point='pk1', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hle
 		hlength = 1 - hlength
 
 	if hradius == None:
-		hradius = float(radius)*2 # arrow head 2 times thicker
+		hradius = float(radius)*2 # arrow head 2 times more width than the cylinder
 	else:
 		hradius = float(hradius)
 
@@ -159,21 +195,17 @@ def efield_point(point='pk1', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hle
 	color2 = list(cmd.get_color_tuple(color2))
 
 	xyz = get_coord(point)
-
-	def get_vec(v):
-		if v.startswith('['):
-			v = v.strip("[]").split(",")
-			vecx = float(v[0])
-			vecy = float(v[1])
-			vecz = float(v[2])
-			vector = [vecx, vecy, vecz]
-			return vector
+	if xyz == False:
+		print("\nERROR! Could not find coordinates for the provided selection!")
+		return
 
 	efield = get_vec(efield)
 	efield = cpv.scale(efield,scale)
 	efieldhat = cpv.normalize(efield) # create the unit vector of vector efield
 
 	print("\n##############################")
+	print("Probe position = ", xyz)
+	print()
 	print("Electric Field (scaled)= ", efield)
 	print()
 	print("Electric Field unit vectors (Ef_hat)= ", efieldhat)
