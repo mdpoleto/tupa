@@ -21,12 +21,14 @@ Required packages:
 First, make sure you have all required packages installed. For MDAnalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
 
 After, just clone this repository into a folder of your choice:
-
-    git clone https://github.com/mdpoleto/tupa.git
+```
+git clone https://github.com/mdpoleto/tupa.git
+```
 
 To easily use **TUPÃ**, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
-
-    alias tupa="python /path/to/the/cloned/repository/TUPA.py"
+```
+alias tupa="python /path/to/the/cloned/repository/TUPA.py"
+```
 
 To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
 Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
@@ -35,67 +37,69 @@ Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage ins
 ## TUPÃ Usage
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
-
-    tupa -template config.conf
-
+```
+tupa -template config.conf
+```
 
 The configuration file usually contains:
+```
+[Environment Selection]
+sele_environment      = (string)             [default: None]
 
-    [Environment Selection]
-    sele_environment      = (string)             [default: None]
+[Probe Selection]
+mode                = (string)             [default: None]
+selatom             = (string)             [default: None]
+selbond1            = (string)             [default: None]
+selbond2            = (string)             [default: None]
+probecoordinate     = [float,float,float]  [default: None]
+remove_self         = (True/False)         [default: False]
+remove_cutoff       = (float)              [default: 1 A ]
 
-    [Probe Selection]
-    mode                = (string)             [default: None]
-    selatom             = (string)             [default: None]
-    selbond1            = (string)             [default: None]
-    selbond2            = (string)             [default: None]
-    probecoordinate     = [float,float,float]  [default: None]
-    remove_self         = (True/False)         [default: False]
-    remove_cutoff       = (float)              [default: 1 A ]
+[Solvent]
+include_solvent     = (True/False)         [default: False]
+solvent_cutoff      = (float)              [default: 10 A]
+solvent_selection   = (string)             [default: None]
 
-    [Solvent]
-    include_solvent     = (True/False)         [default: False]
-    solvent_cutoff      = (float)              [default: 10 A]
-    solvent_selection   = (string)             [default: None]
+[Time]
+dt                  = (integer)            [default: 1]
 
-    [Time]
-    dt                  = (integer)            [default: 1]
-
-    [Box Info]
-    redefine_box        = Whether or not provide explicit box dimension information.
-    boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
-                          and C are the edge lengths (in Angstrom). Alpha, Beta
-                          and Gamma are the box internal angles (in degrees)
+[Box Info]
+redefine_box        = Whether or not provide explicit box dimension information.
+boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
+                      and C are the edge lengths (in Angstrom). Alpha, Beta
+                      and Gamma are the box internal angles (in degrees)
+```
 
 A complete explanation of each option in the configuration file is available via the command:
-
-    tupa -h
+```
+tupa -h
+```
 
 **TUPÃ** has 3 calculations MODES:
 
 * In ``ATOM`` mode, the coordinate of one atom will be tracked throughout the trajectory to serve as probe point.
 If more than 1 atom is provided in the selection, the center of geometry (COG) is used as probe position. An example
-is provided HERE.
+is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/ATOM).
 
 * In ``BOND`` mode, the midpoint between 2 atoms will be tracked throughout the trajectory to serve as probe
 point. In this mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
-define as *selbond1 ---> selbond2*. An example is provided HERE.
+define as ```selbond1 ---> selbond2```. An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/BOND).
 
 * In ``COORDINATE`` mode, a list of [X,Y,Z] coordinates will serve as probe point in all trajectory frames.
-An example is provided HERE.
+An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/COORDINATE).
 
 **IMPORTANT**:
 * All selections must be compatible with MDAnalysis syntax.
-* TUPÃ was designed to work with ```TRICLINIC``` box types. We are working to support for ```rhombic dodecahedron``` and ```truncated octahedron``` boxes.
-* Trajectories MUST be re-imaged before running TUPÃ.
-* *Solvent* molecules in PBC images are selected if within the cutoff. This is achieved by applying the *around* selection feature in MDAnalysis.
+* TUPÃ was designed to work with ```TRICLINIC``` box types. We are working to support for rhombic dodecahedron and truncated octahedron boxes.
+* Trajectories MUST be re-imaged before running TUPÃ. *Make sure your probe is well centered in the box*.
+* Molecules in ```solvent_selection``` beyond the PBC and re-imaged. This is achieved by applying the ```around``` selection feature in MDAnalysis and shifting the coordinates.
 * If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for rotations and translations.
 
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-To install *pyTUPÃ* plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
-Choose the *pyTUPÃ.py* file and click Install.
+To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
+Choose the ```pyTUPÃ.py``` file and click Install.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
