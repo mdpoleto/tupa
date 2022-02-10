@@ -255,30 +255,19 @@ def calc_EletricProperties(atom,refposition):
 
 	return Ef
 
-def pack_around(atom_group, center):
-	"""
-	Translate atoms to their periodic image the closest to a given point.
+def pack_around(atom_group, center, boxinfo):
 
-	The function assumes that the center is in the main periodic image.
-	"""
-	# Copy the atom_group a
-	tmp_group = atom_group
-	# Get the box for the current frame
-	box = atom_group.universe.dimensions
-	# The next steps assume that all the atoms are in the same
-	# periodic image, so let's make sure it is the case
+	tmp_group = atom_group # we will update tmp_group below
 	atom_group.pack_into_box()
-	# AtomGroup.positions is a property rather than a simple attribute.
-	# It does not always propagate changes very well so let's work with
-	# a copy of the coordinates for now.
-	positions = atom_group.positions.copy()
-	# Identify the *coordinates* to translate.
+	positions = atom_group.positions.copy() # working with a tmp copy of positions
 	sub = positions - center
-	culprits = np.where(np.sqrt(sub**2) > box[:3] / 2)
+
+	# Get the box for the current frame
+	box = boxinfo[:3]
+	culprits = np.where(np.sqrt(sub**2) > box / 2)
 	# Actually translate the coordinates.
 	positions[culprits] -= (u.dimensions[culprits[1]]
 	                        * np.sign(sub[culprits]))
-	# Copy the atom_group a
 	tmp_group.positions = positions
 
 	return tmp_group
@@ -414,7 +403,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	else:
 		pass
 
-	print(u.dimensions)
 	########################################################
 	# Update environment and target selections
 	if mode == "atom":
@@ -448,7 +436,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		elif mode == "coordinate":
 			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 
-		tmp_selection = pack_around(tmp_selection, refposition) # <<<<<------ DOUBLE CHECK THIS FUNCTION! It is compatible with rectangular boxes only!
+		tmp_selection = pack_around(tmp_selection, refposition, ts.dimensions) 
 		enviroment_selection = elecfield_selection + tmp_selection
 	else:
 		enviroment_selection = elecfield_selection
