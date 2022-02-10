@@ -424,9 +424,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	elif mode == "coordinate":
 		refposition = probe_selection
 
-	# IF I AM RECENTERING STUFF, THE PLACE TO DO IT IS HERE, BEFORE THE AROUND
-	# SELECTION SO IT CAN SELECT THE MAXIMUM NUMBER OF ATOMS
-
 
 	if include_solvent == True:
 		if mode == "atom":
@@ -436,7 +433,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		elif mode == "coordinate":
 			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 
-		tmp_selection = pack_around(tmp_selection, refposition, ts.dimensions) 
+		tmp_selection = pack_around(tmp_selection, refposition, ts.dimensions)
 		enviroment_selection = elecfield_selection + tmp_selection
 	else:
 		enviroment_selection = elecfield_selection
@@ -473,8 +470,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			print(""">>> Warning! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
 
 	########################################################
-	# opening a temporary dictionary to hold the contribution of each residue
-	# for each frame
+	# opening a temporary dictionary to hold the contribution of each residue for each frame
 	dict_res_tmp = {}
 
 	xfield_list = []
