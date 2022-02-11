@@ -199,9 +199,9 @@ def unit_vector(vector):
 	""" Returns the unit vector of the vector.  """
 	return vector / np.linalg.norm(vector)
 
-def alignment(v1,v2):
+def alignment(value1,value2):
 	# V2 is the total reference
-	aligned = abs(v1/v2)
+	aligned = abs(value1/value2)*100
 	return aligned
 
 def projection(v1,v2):
@@ -396,6 +396,8 @@ for atom in elecfield_selection.atoms:
 print("\n########################################################")
 print("\n>>> Calculating Electric Field at time:")
 
+efield_total = {}
+
 for ts in u.trajectory[0: len(u.trajectory):]:
 
 	if always_redefine_box_flag == True:
@@ -473,9 +475,9 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	# opening a temporary dictionary to hold the contribution of each residue for each frame
 	dict_res_tmp = {}
 
-	xfield_list = []
-	yfield_list = []
-	zfield_list = []
+	xfield_list_frame = []
+	yfield_list_frame = []
+	zfield_list_frame = []
 
 	# Iterating over all atoms in selection to get their contributions
 	for atom in enviroment_selection.atoms:
@@ -489,9 +491,9 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		Ef_xyz = calc_EletricProperties(atom, refposition)
 
 		Efx, Efy, Efz = Ef_xyz
-		xfield_list.append(Efx)
-		yfield_list.append(Efy)
-		zfield_list.append(Efz)
+		xfield_list_frame.append(Efx)
+		yfield_list_frame.append(Efy)
+		zfield_list_frame.append(Efz)
 
 		# upload keys (residues) in dict_res_tmp to include the contribution of
 		# each atom in a residue. We will update the dictionary for each residue
@@ -506,11 +508,14 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			pass
 
 	# Sum the contributions of all atoms to get the resultant Efield
-	totalEfx = np.sum(xfield_list)
-	totalEfy = np.sum(yfield_list)
-	totalEfz = np.sum(zfield_list)
+	totalEfx = np.sum(xfield_list_frame)
+	totalEfy = np.sum(yfield_list_frame)
+	totalEfz = np.sum(zfield_list_frame)
 	totalEf  = np.array([totalEfx, totalEfy, totalEfz])
 	totalEfmag = mag(totalEf)
+
+	# Keep the contributions for each frame so we can use later
+	efield_total[time] = [totalEfx, totalEfy, totalEfz]
 
 	########################################################
 	# Write information exclusive to BOND mode
@@ -566,7 +571,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			resEfproj = projection(resEf,rbond_vec)
 		else:
 			resEfproj = projection(resEf,totalEf)
-		resEfalignment = alignment(resEfproj,totalEf)
+		resEfalignment = alignment(mag(resEfproj),totalEfmag)
 
 		# Update the total dictionary with values of THIS FRAME
 		resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp = dict_res_total[r]
@@ -576,6 +581,30 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		resEfmag_tmp.append(resEfmag)
 		res_alignment_tmp.append(resEfalignment)
 		dict_res_total[r] = [resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp]
+
+###############################################################################
+# Calculate average Efield vector and deviation of each frame to the average
+avgfield = np.average(list(efield_total.values()), axis=0)
+angle_list = []
+
+outangle = open(outdir + "Spatial_Deviation.dat", "w")
+outangle.write("#time   Angle(field_frame, avg_field)   Projection(field_frame, avg_field)   Alignment(field_frame, avg_field)\n")
+
+for time,field in efield_total.items():
+	angle = angle_between(field, avgfield)*(180/np.pi)
+	angle_list.append(angle)
+	proj = projection(field,avgfield)
+	projmag = mag(proj)
+	fieldmag = mag(field)
+	alig= alignment(projmag,fieldmag)
+
+	lineangle  = str(time).ljust(10,' ') + str("{:.12e}".format(angle)).ljust(30,' ') + str("{:.12e}".format(projmag)).ljust(30,' ') + str("{:.12e}".format(alig)).ljust(30,' ') + "\n"
+	outangle.write(lineangle)
+
+avgangle = np.average(angle_list)
+stdangle = np.std(angle_list)
+outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdangle)).ljust(5,' '))
+outangle.close()
 
 ###############################################################################
 # Calculate the average contribution of each residue throughout trajectory
