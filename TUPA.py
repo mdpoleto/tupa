@@ -320,22 +320,18 @@ if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
 	if redefine_box == True:
 		print("\n>>> Redifining box dimensions to:", boxdimensions)
 		always_redefine_box_flag = True
-		u.dimensions = boxdimensions
 	else:
 		sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
 		print("\n>>> Redifining box dimensions to: ", boxdimensions)
 		always_redefine_box_flag = True
-		u.dimensions = boxdimensions
 else:
 	if redefine_box == True:
 		print("\n>>> Redifining box dimensions to:", boxdimensions)
 		always_redefine_box_flag = True
-		u.dimensions = boxdimensions
 	else:
 		always_redefine_box_flag = False
 
-	# CHECK THE BOX THING ABOVE!!!!
 
 if mode == "atom":
 	probe_selection = u.select_atoms(selatom)
@@ -401,7 +397,7 @@ efield_total = {}
 for ts in u.trajectory[0: len(u.trajectory):]:
 
 	if always_redefine_box_flag == True:
-		u.dimensions = boxdimensions
+		ts.dimensions = boxdimensions
 	else:
 		pass
 

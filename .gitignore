@@ -1,6 +1,5 @@
 # Personal files
 *.pyc
-*.conf
 Examples/*/*.png
 Examples/*/bla*
 not2git

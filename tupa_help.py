@@ -45,6 +45,11 @@ solvent_selection   = segid TIP3
 [Time]
 dt                  = 10      # Frequency of frames written in your trajectory (in picosecond)
 
+[Box Info]
+redefine_box        = False   # Your box SHOULD have dimensions for each frame!
+                              # This is a workaround in case you don't.
+boxdimensions       = [float,float,float,float,float,float]
+
 # IMPORTANT:
 # 1- All selections must be compatible with MDAnalysis
 # 2- remove_self only works in COORDINATE mode. For ATOM or BOND mode, analogous
@@ -59,6 +64,9 @@ dt                  = 10      # Frequency of frames written in your trajectory (
 # a bond dipole direction is defined to be from positive to negative.
 # 5- If COORDINATE mode, make sure you have fixed translations and
 # orientations in your trajectory.
+# 6- Your box should have dimensions for each frame. If you these are missing, we
+# suggest to go back to the step where you reoriented your trajectory and double
+# check your steps there.
 """
 
 help = """
@@ -138,7 +146,7 @@ help = """
                         dt is used to convert frame number into simulation time.
 
   [Box Info]
-  redefine_box        = Whether or not provide explicit box dimension information.
+  redefine_box        = Whether or not to overwrite box dimension information.
   boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
                         and C are the edge lengths (in Angstrom). Alpha, Beta
                         and Gamma are the box internal angles (in degrees)
