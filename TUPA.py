@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #Marcelo D. Poleto
-#DEC 2021
+#FEB 2022
 
 import sys, os, argparse, timeit
 import MDAnalysis as mda
@@ -584,7 +584,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 ###############################################################################
 # Calculate average Efield vector and deviation of each frame to the average
-avgfield = np.average(list(efield_total.values()), axis=0)
+avgfield   = np.average(list(efield_total.values()), axis=0)
+stdevfield = np.average(list(efield_total.values()), axis=0)
 angle_list = []
 
 outangle = open(outdir + "Spatial_Deviation.dat", "w")
@@ -593,26 +594,27 @@ outangle.write("#time   Angle(field_frame, avg_field)   Projection(field_frame, 
 for time,field in efield_total.items():
 	angle = angle_between(field, avgfield)*(180/np.pi)
 	angle_list.append(angle)
-	proj = projection(field,avgfield)
-	projmag = mag(proj)
+	proj     = projection(field,avgfield)
+	projmag  = mag(proj)
 	fieldmag = mag(field)
-	alig= alignment(projmag,fieldmag)
+	alig     = alignment(projmag,fieldmag)
 
 	lineangle  = str(time).ljust(10,' ') + str("{:.12e}".format(angle)).ljust(30,' ') + str("{:.12e}".format(projmag)).ljust(30,' ') + str("{:.12e}".format(alig)).ljust(30,' ') + "\n"
 	outangle.write(lineangle)
 
-avgangle = np.average(angle_list)
-stdangle = np.std(angle_list)
-outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdangle)).ljust(5,' '))
+avgangle   = np.average(angle_list)
+stdevangle = np.std(angle_list)
+outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(5,' '))
 outangle.close()
 
+out.write("#AVG: " + str("{:.12e}".format(avgfield)).rjust(30,' ') + " +- " + str("{:.12e}".format(stdevfield)).ljust(30,' '))
 ###############################################################################
 # Calculate the average contribution of each residue throughout trajectory
 for r, comp in dict_res_total.items():
 	r = r.partition('_')[2] # ignore resname and keep resid
 	res_efield_x, res_efield_y, res_efield_z, resEfmag, resEfaligned = comp
-	resEfmag_avg = np.average(resEfmag)
-	resEfmag_std = np.std(resEfmag)
+	resEfmag_avg  = np.average(resEfmag)
+	resEfmag_std  = np.std(resEfmag)
 	resEfalig_avg = np.average(resEfaligned)
 	resEfalig_std = np.std(resEfaligned)
 

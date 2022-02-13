@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #Marcelo D. Poleto
-#DEC 2021
+#FEB 2022
 
 from chempy import cpv
 from pymol import cmd, cgo, CmdException
 import numpy as np
+import math
 
 '''
 CREATION
-	(c) Marcelo D. Poleto, Sep 2021. Virginia Tech
+	(c) Marcelo D. Poleto, Feb 2022. Virginia Tech
 	This script was based on 'cgo_arrow.py' by Thomas Holder.
 DESCRIPTION
 	Allows the user to create arrows representing:
@@ -19,13 +20,17 @@ DESCRIPTION
 ARGUMENTS
 	bond_atom1 = string: single atom selection or list of 3 floats {default: pk1}
 	bond_atom2 = string: single atom selection or list of 3 floats {default: pk2}
-	efield = list of 3 floats containing the XYZ electric field components {default: [1.0. 1.0, 1.0]}
-	radius = float: arrow radius {default: 0.1}
-	scale = float: scale factor to change arrow size {default: 0.0}
-	hlength = float: length of arrow head in percentage of efield magnitude {default: 30%}
-	hradius = float: radius of arrow head in percentage of radius {default: 200%}
-	color = string: one or two color names {default: blue red}
-	name = string: name of CGO object
+	point      = string: single atom selection or list of 3 floats {default: pk1}
+
+	efield      = list of 3 floats containing the XYZ electric field components {default: [1.0. 1.0, 1.0]}
+	radius      = float: arrow radius {default: 0.1}
+	scale       = float: scale factor to change arrow size {default: 0.0}
+	hlength     = float: length of arrow head in percentage of efield magnitude {default: 30%}
+	hradius     = float: radius of arrow head in percentage of radius {default: 2*radius}
+	color       = string: one or two color names {default: blue red}
+	stdev       = angle to define the spatial standard deviation of the efield
+	efield_name = string: name of CGO object for the efield vector
+	stdev_name  = string: name of CGO object for the 3D standard deviation
 '''
 
 def mag(vector):
@@ -98,6 +103,7 @@ def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, h
 	normal = cpv.normalize(cpv.sub(xyz1, xyz2))
 
 	print("\n##############################")
+	print("####### Running pyTUPÃ #######")
 	print("Bond axis unit vectors (r_hat)= ", normal)
 	print("##############################\n")
 
@@ -122,9 +128,14 @@ def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, h
 	cmd.load_cgo(obj, name)
 	return
 
-def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', name=''):
+def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=None, scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', stdev=0.0, efield_name='', stdev_name=''):
 
-	radius, scale, hlength = float(radius), float(scale), float(hlength)
+	if efield == None:
+		efield = list([1.0, 1.0, 1.0])
+	else:
+		pass
+
+	radius, scale, hlength, stdev = float(radius), float(scale), float(hlength), float(stdev)
 	if not 0 <= hlength <= 1.0:
 		print("\nERROR! hlength must be between 0 and 1!")
 		return
@@ -132,7 +143,7 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=[1.0, 1.0, 1.0], scal
 		hlength = 1 - hlength
 
 	if hradius == None:
-		hradius = float(radius)*2 # arrow head 2 times thicker
+		hradius = float(radius)*2 # arrow head 2 times more width than the cylinder
 	else:
 		hradius = float(hradius)
 
@@ -145,18 +156,24 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=[1.0, 1.0, 1.0], scal
 
 	xyz1 = get_coord(bond_atom1) # get the coordinates from which the arrow will be drawn
 	xyz2 = get_coord(bond_atom2) # get the coordinates which the arrow will be drawn to
-	xyz = cpv.average(xyz1, xyz2)
+
+	if xyz1 == False or xyz2 == False:
+		print("\nERROR! Could not find coordinates for the provided selection!")
+		return
+	else:
+		xyz = cpv.average(xyz1, xyz2)
 
 	efield = get_vec(efield)
 	efield = cpv.scale(efield,scale)
-	efieldhat = cpv.normalize(efield) # arrow head 2 times more width than the cylinder
+	efieldhat = cpv.normalize(efield) # create the unit vector of vector efield
+	efieldmag = mag(efield)
 
 	print("\n##############################")
+	print("####### Running pyTUPÃ #######")
 	print("Probe position = ", xyz)
-	print()
-	print("Electric Field (scaled)= ", efield)
-	print()
-	print("Electric Field unit vectors (Ef_hat)= ", efieldhat)
+	print("Electric Field (scaled) = ", efield)
+	print("Electric Field magnitude = ", efieldmag)
+	print("Electric Field unit vectors (Ef_hat) = ", efieldhat)
 	print("##############################\n")
 
 	# The arrow is a cylinder plus a cone. So we actually draw a cylinder and
@@ -168,14 +185,31 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=[1.0, 1.0, 1.0], scal
 		[cgo.CONE] + xyz_cyl + end + [hradius, 0.0] + color2 + color2 + \
 		[1.0, 0.0]
 
-	if not name:
-		name = cmd.get_unused_name('efield')
+	if not efield_name:
+		efield_name = cmd.get_unused_name('efield')
+	cmd.load_cgo(obj, efield_name)
 
-	cmd.load_cgo(obj, name)
 
-def efield_point(point='pk1', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', name=''):
+	if stdev > 0.0:
+		stdev_rad = math.radians(stdev)
+		std_radius = mag(cpv.scale(xyz_cyl,math.sin(stdev_rad)))
+		std_height = cpv.scale(xyz_cyl,math.cos(stdev_rad))
 
-	radius, scale, hlength = float(radius), float(scale), float(hlength)
+		obj2 = [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
+
+		if not stdev_name:
+			stdev_name = cmd.get_unused_name('spatialdev')
+
+		cmd.load_cgo(obj2, stdev_name)
+
+def efield_point(point='pk1', efield=None, scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', stdev=0.0, efield_name='', stdev_name=''):
+
+	if efield == None:
+		efield = list([1.0, 1.0, 1.0])
+	else:
+		pass
+
+	radius, scale, hlength, stdev = float(radius), float(scale), float(hlength), float(stdev)
 	if not 0 <= hlength <= 1.0:
 		print("\nERROR! hlength must be between 0 and 1!")
 		return
@@ -202,13 +236,14 @@ def efield_point(point='pk1', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hle
 	efield = get_vec(efield)
 	efield = cpv.scale(efield,scale)
 	efieldhat = cpv.normalize(efield) # create the unit vector of vector efield
+	efieldmag = mag(efield)
 
 	print("\n##############################")
+	print("####### Running pyTUPÃ #######")
 	print("Probe position = ", xyz)
-	print()
-	print("Electric Field (scaled)= ", efield)
-	print()
-	print("Electric Field unit vectors (Ef_hat)= ", efieldhat)
+	print("Electric Field (scaled) = ", efield)
+	print("Electric Field magnitude = ", efieldmag)
+	print("Electric Field unit vectors (Ef_hat) = ", efieldhat)
 	print("##############################\n")
 
 	# The arrow is a cylinder plus a cone. So we actually draw a cylinder and
@@ -220,10 +255,22 @@ def efield_point(point='pk1', efield=[1.0, 1.0, 1.0], scale=1.0, radius=0.1, hle
 		[cgo.CONE] + xyz_cyl + end + [hradius, 0.0] + color2 + color2 + \
 		[1.0, 0.0]
 
-	if not name:
-		name = cmd.get_unused_name('efield')
+	if not efield_name:
+		efield_name = cmd.get_unused_name('efield')
+	cmd.load_cgo(obj, efield_name)
 
-	cmd.load_cgo(obj, name)
+
+	if stdev > 0.0:
+		stdev_rad = math.radians(stdev)
+		std_radius = mag(cpv.scale(xyz_cyl,math.sin(stdev_rad)))
+		std_height = cpv.scale(xyz_cyl,math.cos(stdev_rad))
+
+		obj2 = [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
+
+		if not stdev_name:
+			stdev_name = cmd.get_unused_name('spatialdev')
+
+		cmd.load_cgo(obj2, stdev_name)
 ###################################################
 
 cmd.extend('draw_bond_axis', draw_bond_axis)
