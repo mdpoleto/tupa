@@ -316,22 +316,24 @@ else:
 # This is us being very verbose so people actually know what is happening
 print("\n########################################################")
 # Check whether trajectory file has box dimension information and redifine if requested
-if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
-	if redefine_box == True:
-		print("\n>>> Redifining box dimensions to:", boxdimensions)
-		always_redefine_box_flag = True
+if isinstance(u.dimensions, list):
+	if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
+		if redefine_box == True:
+			print("\n>>> Redifining box dimensions to:", boxdimensions)
+			always_redefine_box_flag = True
+		else:
+			sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
+	elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
+			print("\n>>> Redifining box dimensions to: ", boxdimensions)
+			always_redefine_box_flag = True
 	else:
-		sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
-elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
-		print("\n>>> Redifining box dimensions to: ", boxdimensions)
-		always_redefine_box_flag = True
+		if redefine_box == True:
+			print("\n>>> Redifining box dimensions to:", boxdimensions)
+			always_redefine_box_flag = True
+		else:
+			always_redefine_box_flag = False
 else:
-	if redefine_box == True:
-		print("\n>>> Redifining box dimensions to:", boxdimensions)
-		always_redefine_box_flag = True
-	else:
-		always_redefine_box_flag = False
-
+	sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 
 if mode == "atom":
 	probe_selection = u.select_atoms(selatom)
@@ -581,7 +583,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 ###############################################################################
 # Calculate average Efield vector and deviation of each frame to the average
 avgfield   = np.average(list(efield_total.values()), axis=0)
-stdevfield = np.average(list(efield_total.values()), axis=0)
+mag_list   = []
 angle_list = []
 
 outangle = open(outdir + "Spatial_Deviation.dat", "w")
@@ -593,6 +595,7 @@ for time,field in efield_total.items():
 	proj     = projection(field,avgfield)
 	projmag  = mag(proj)
 	fieldmag = mag(field)
+	mag_list.append(fieldmag)
 	alig     = alignment(projmag,fieldmag)
 
 	lineangle  = str(time).ljust(10,' ') + str("{:.12e}".format(angle)).ljust(30,' ') + str("{:.12e}".format(projmag)).ljust(30,' ') + str("{:.12e}".format(alig)).ljust(30,' ') + "\n"
@@ -603,6 +606,8 @@ stdevangle = np.std(angle_list)
 outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(5,' '))
 outangle.close()
 
+avgfield   = np.average(mag_list)
+stdevfield = np.stdev(mag_list)
 out.write("#AVG: " + str("{:.12e}".format(avgfield)).rjust(30,' ') + " +- " + str("{:.12e}".format(stdevfield)).ljust(30,' '))
 ###############################################################################
 # Calculate the average contribution of each residue throughout trajectory
