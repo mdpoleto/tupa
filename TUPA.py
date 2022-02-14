@@ -315,7 +315,7 @@ else:
 
 # This is us being very verbose so people actually know what is happening
 print("\n########################################################")
-# Check whether trajectory file has box dimension information and redifine if requested
+# Check whether trajectory file has box dimension information and redefine if requested
 if isinstance(u.dimensions, list):
 	if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
 		if redefine_box == True:
