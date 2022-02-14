@@ -319,16 +319,16 @@ print("\n########################################################")
 if isinstance(u.dimensions, list):
 	if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
 		if redefine_box == True:
-			print("\n>>> Redifining box dimensions to:", boxdimensions)
+			print("\n>>> Redefining box dimensions to:", boxdimensions)
 			always_redefine_box_flag = True
 		else:
 			sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 	elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
-			print("\n>>> Redifining box dimensions to: ", boxdimensions)
+			print("\n>>> Redefining box dimensions to: ", boxdimensions)
 			always_redefine_box_flag = True
 	else:
 		if redefine_box == True:
-			print("\n>>> Redifining box dimensions to:", boxdimensions)
+			print("\n>>> Redefining box dimensions to:", boxdimensions)
 			always_redefine_box_flag = True
 		else:
 			always_redefine_box_flag = False
