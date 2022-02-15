@@ -316,6 +316,7 @@ else:
 # This is us being very verbose so people actually know what is happening
 print("\n########################################################")
 # Check whether trajectory file has box dimension information and redefine if requested
+
 if u.dimensions is not None:
 	boxangles = u.dimensions[3:]
 	checkangles = [i for i in boxangles if float(i) != 90.]
