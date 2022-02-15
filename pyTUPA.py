@@ -195,7 +195,7 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=None, scale=1.0, radi
 		std_radius = mag(cpv.scale(xyz_cyl,math.sin(stdev_rad)))
 		std_height = cpv.scale(xyz_cyl,math.cos(stdev_rad))
 
-		obj2 = [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
+		obj2 = [cgo.ALPHA, 0.25] + [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
 
 		if not stdev_name:
 			stdev_name = cmd.get_unused_name('spatialdev')
@@ -265,7 +265,7 @@ def efield_point(point='pk1', efield=None, scale=1.0, radius=0.1, hlength=0.3, h
 		std_radius = mag(cpv.scale(xyz_cyl,math.sin(stdev_rad)))
 		std_height = cpv.scale(xyz_cyl,math.cos(stdev_rad))
 
-		obj2 = [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
+		obj2 = [cgo.ALPHA, 0.25] + [cgo.CONE] + xyz + std_height + [radius, std_radius] + color1 + color2 + [1.0, 1.0]
 
 		if not stdev_name:
 			stdev_name = cmd.get_unused_name('spatialdev')
