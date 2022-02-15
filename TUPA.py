@@ -316,22 +316,28 @@ else:
 # This is us being very verbose so people actually know what is happening
 print("\n########################################################")
 # Check whether trajectory file has box dimension information and redefine if requested
-if isinstance(u.dimensions, list):
-	if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
-		if redefine_box == True:
-			print("\n>>> Redefining box dimensions to:", boxdimensions)
-			always_redefine_box_flag = True
+if u.dimensions is not None:
+	boxangles = u.dimensions[3:]
+	checkangles = [i for i in boxangles if float(i) != 90.]
+	if len(checkangles) == 0:
+		if u.dimensions[0] == 1 and u.dimensions[1] == 1 and u.dimensions[2] == 1:
+			if redefine_box == True:
+				print("\n>>> Redefining box dimensions to:", boxdimensions)
+				always_redefine_box_flag = True
+			else:
+				sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
+		elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
+				print("\n>>> Redefining box dimensions to: ", boxdimensions)
+				always_redefine_box_flag = True
 		else:
-			sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
-	elif u.dimensions[0] == 0 and u.dimensions[1] == 0 and u.dimensions[2] == 0:
-			print("\n>>> Redefining box dimensions to: ", boxdimensions)
-			always_redefine_box_flag = True
+			if redefine_box == True:
+				print("\n>>> Redefining box dimensions to:", boxdimensions)
+				always_redefine_box_flag = True
+			else:
+				always_redefine_box_flag = False
 	else:
-		if redefine_box == True:
-			print("\n>>> Redefining box dimensions to:", boxdimensions)
-			always_redefine_box_flag = True
-		else:
-			always_redefine_box_flag = False
+		sys.exit("""\n>>> WARNING: Your box does not seem to be orthorhombic. We are currently working to support non-rectangular boxes.\n""")
+		always_redefine_box_flag = False
 else:
 	sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 
@@ -607,7 +613,7 @@ outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " +
 outangle.close()
 
 avgfield   = np.average(mag_list)
-stdevfield = np.stdev(mag_list)
+stdevfield = np.std(mag_list)
 out.write("#AVG: " + str("{:.12e}".format(avgfield)).rjust(30,' ') + " +- " + str("{:.12e}".format(stdevfield)).ljust(30,' '))
 ###############################################################################
 # Calculate the average contribution of each residue throughout trajectory
