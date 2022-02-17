@@ -77,27 +77,32 @@ try:
 		try:
 			selatom = str(config['Probe Selection']["selatom"].strip('"'))
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "atom" mode, selatom must be defined!\n""")
+			sys.exit("""\n>>> ERROR: in "ATOM" mode, selatom must be defined!\n""")
 	elif mode == "bond":
 		try:
 			selbond1 = str(config['Probe Selection']["selbond1"].strip('"'))
 			selbond2 = str(config['Probe Selection']["selbond2"].strip('"'))
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "bond" mode, both selbond1 and selbond2 must be defined!\n""")
+			sys.exit("""\n>>> ERROR: in "BOND" mode, both selbond1 and selbond2 must be defined!\n""")
 	elif mode == "coordinate":
 		try:
 			tmp_probecoordinate = str(config['Probe Selection']["probecoordinate"]).strip('[]').split(",")
 			probecoordinate = [float(item) for item in tmp_probecoordinate]
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "coordinate" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
+			sys.exit("""\n>>> ERROR: in "COORDINATE" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
+	elif mode == "list":
+		try:
+			file_of_coordinates = str(config['Probe Selection']["file_of_coordinates"].strip('"'))
+		except Exception as e2:
+			sys.exit("""\n>>> ERROR: in "LIST" mode, "file_of_coordinates" must be defined!\n""")
 	else:
-		sys.exit("""\n>>> ERROR: "mode" must be defined as "atom", "bond" or coordinate!\n""")
+		sys.exit("""\n>>> ERROR: "mode" must be defined as "ATOM", "BOND", "COORDINATE" or "LIST"!\n""")
 
 except Exception as e2:
-	sys.exit("""\n>>> ERROR: "mode" must be defined as "atom", "bond" or coordinate!\n""")
+	sys.exit("""\n>>> ERROR: "mode" must be defined as "ATOM", "BOND", "COORDINATE" or "LIST"!\n""")
 
 
-if mode == "coordinate":
+if mode == "coordinate" or mode == "list":
 	try:
 		remove_self = str(config['Probe Selection']["remove_self"]).lower()
 		if remove_self  == "true":
@@ -168,14 +173,16 @@ print('[Environment Selection]')
 print('sele_environment   = {}'.format(sele_elecfield))
 print()
 print("[Probe Selection]")
-print('mode               = {}'.format(mode))
+print('mode                = {}'.format(mode))
 if mode == "atom":
-	print('selatom            = {}'.format(selatom))
+	print('selatom             = {}'.format(selatom))
 elif mode == "bond":
-	print('selbond1           = {}'.format(selbond1))
-	print('selbond2           = {}'.format(selbond2))
+	print('selbond1            = {}'.format(selbond1))
+	print('selbond2            = {}'.format(selbond2))
 elif mode == "coordinate":
-	print('probecoordinate    = {}'.format(probecoordinate))
+	print('probecoordinate     = {}'.format(probecoordinate))
+elif mode == "list":
+	print('file_of_coordinates = {}'.format(file_of_coordinates))
 	if remove_self == True:
 		print('remove_self        = {}'.format(remove_self))
 		print('remove_cutoff      = {}'.format(remove_cutoff))
@@ -193,6 +200,7 @@ print("[Box Info]")
 print('redefine_box       = {}'.format(redefine_box))
 if redefine_box == True:
 	print('boxdimensions      = {}'.format(boxdimensions))
+
 ###############################################################################
 def mag(vector):
 	""" Returns the magnitude of the vector.  """
@@ -311,11 +319,36 @@ if mode == "bond":
 	outrbond.write("#time     rbondvec_in_meters                                          rbond_magnitude               rbond_unit_vector\n")
 
 ###############################################################################
+print("\n########################################################")
 # Creating Universe and making selections
 if top_file != None and traj_file != None:
 	u = mda.Universe(top_file, traj_file)
 else:
 	sys.exit("""\n>>> ERROR: Topology or Trajectory files missing. Are you not forgetting something?!\n""")
+
+# If mode == LIST, parse the file of coordinates
+if mode == 'list':
+	loc = open(file_of_coordinates, 'r')
+	list_of_coordinates = []
+	while True:
+		coorline = loc.readline()
+		if not coorline: break
+		if coorline[0] != "#" and coorline[0] != "@":
+			if len(coorline.split()) == 3:
+				try:
+					listcoorX = float(coorline.split()[0])
+					listcoorY = float(coorline.split()[1])
+					listcoorZ = float(coorline.split()[2])
+				except:
+					sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X Y Z). Check your inputs!\n""")
+				tmpcoorlist = [listcoorX, listcoorY, listcoorZ]
+				list_of_coordinates.append(tmpcoorlist)
+			else:
+				sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X Y Z). Check your inputs!\n""")
+
+	# Sanity check: list of coordinates should have the same length as the trajectory
+	if len(list_of_coordinates) != len(u.trajectory):
+		sys.exit("""\n>>> ERROR: File of coordinates and trajectory have different lengths (""" + str(len(list_of_coordinates)) + """ lines and """ + str(len(u.trajectory)) + """ frames)!\n""")
 
 ###############################################################################
 print("\n########################################################")
@@ -366,6 +399,12 @@ elif mode == "coordinate":
 	probe_selection = probecoordinate
 	print("\n>>> Running in COORDINATE mode!")
 	print(">>> Probe XYZ position = " +  str(probe_selection))
+	if remove_self == True:
+		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
+elif mode == "list":
+	probe_selection = list_of_coordinates
+	print("\n>>> Running in LIST mode!")
+	print(">>> Probe XYZ positions = " + str(len(list_of_coordinates)) + """ XYZ coordinates""")
 	if remove_self == True:
 		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
 
@@ -425,13 +464,16 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		position2 = bond2.atoms[0].position
 
 		rbond_vec = (position2 - position1) # axis from ref1 to ref2
-		rbond_vec = rbond_vec*(10**(-10)) #convert from Angstrom to meter
+		rbond_vec = rbond_vec*(10**(-10)) # convert from Angstrom to meter
 		rbond_hat = unit_vector(rbond_vec)
 
-		refposition = (position1 + position2)/2 #midway for both atoms
+		refposition = (position1 + position2)/2 # midway for both atoms
 
 	elif mode == "coordinate":
 		refposition = probe_selection
+
+	elif mode == "list":
+		refposition = probe_selection[ts.frame] # update probe position from the list
 
 	# We incorporate the solvent selection around the probe here for each mode
 	if include_solvent == True:
@@ -440,6 +482,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		elif mode == "bond":
 			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
 		elif mode == "coordinate":
+			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+		elif mode == "list":
 			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 
 		# translate molecules within selection that are beyond the PBC and incorporate into the environment

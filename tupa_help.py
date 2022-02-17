@@ -4,7 +4,7 @@
 #DEC 2021
 
 
-header = """
+#header = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
 	#                             TUPÃ 1.0.0 (2022)                           #
@@ -12,6 +12,19 @@ header = """
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
 	#                    Paper metadata here..............                    #
+	#                                                                         #
+	#            In case of bugs or suggestions, please contact us:           #
+	#                              mdpoleto@vt.edu                            #
+	#                                                                         #
+	# LGPL-3.0                                                                #
+	###########################################################################\n\n"""
+
+header = """
+	###########################################################################
+	#                 TUPÃ - Electric Field analyses algorithm                #
+	#                             TUPÃ 1.0.0 (2022)                           #
+	#                                                                         #
+	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
 	#            In case of bugs or suggestions, please contact us:           #
 	#                              mdpoleto@vt.edu                            #
