@@ -351,7 +351,7 @@ if mode == "atom":
 	probe_selection = u.select_atoms(selatom)
 	if len(probe_selection) > 1:
 		print("\n>>> Running in ATOM mode!")
-		print(">>> Probe atoms (COG) = "+ str(probe_selection.atoms) + "\n")
+		print(">>> Probe atoms (using center of geometry) = "+ str(probe_selection.atoms) + "\n")
 	else:
 		print("\n>>> Running in ATOM mode!")
 		print(">>> Probe atom = "+ str(probe_selection.atoms[0].name) +"-"+ str(probe_selection.resnames[0]) + str(probe_selection.resnums[0]) + "\n")
@@ -381,7 +381,7 @@ elecfield_selection = u.select_atoms(sele_elecfield)
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			sys.exit(">>> WARNING: Probe atom(s) within Environment selection (" + atom + ")! Review your environment selection!\n")
+			sys.exit(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Review your environment selection!\n>>> Exiting...\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -539,7 +539,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		totalEfmag = totalEfmag*proj_direction
 		Efprojectionmag = mag(Efprojection)*proj_direction
 
-		# write Efield 
+		# write Efield
 		lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
 		out.write(lineEfield)
 		# Write Efield projection
