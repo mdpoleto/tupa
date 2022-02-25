@@ -1,6 +1,3 @@
-## TUPÃ
-Electric field analyses for molecular simulations
-
 ![alt text](TUPÃ_LOGO.png)
 
 ## What is TUPÃ?
