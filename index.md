@@ -146,6 +146,4 @@ In Brazilian folklore, Tupã is considered a "manifestation of God in the form o
 ## Contact information
 E-mail: mdpoleto@vt.edu / jalemkul@vt.edu
 
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/l02lg00zonn9v19irctl" alt="trackgit-views" />
-</a>
+[![Twitter Follow](https://img.shields.io/twitter/follow/mdpoleto?style=social)](https://twitter.com/mdpoleto)
