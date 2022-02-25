@@ -40,7 +40,7 @@ tupa -template config.conf
 The configuration file usually contains:
 ```
 [Environment Selection]
-sele_environment      = (string)             [default: None]
+sele_environment    = (string)             [default: None]
 
 [Probe Selection]
 mode                = (string)             [default: None]
