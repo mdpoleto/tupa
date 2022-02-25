@@ -52,6 +52,7 @@ selatom             = (string)             [default: None]
 selbond1            = (string)             [default: None]
 selbond2            = (string)             [default: None]
 probecoordinate     = [float,float,float]  [default: None]
+file_of_coordinates = (pathway to file)    [default: None]
 remove_self         = (True/False)         [default: False]
 remove_cutoff       = (float)              [default: 1 A ]
 
@@ -75,7 +76,7 @@ A complete explanation of each option in the configuration file is available via
 tupa -h
 ```
 
-**TUPÃ** has 3 calculations MODES:
+**TUPÃ** has 4 calculations MODES:
 
 * In ``ATOM`` mode, the coordinate of one atom will be tracked throughout the trajectory to serve as probe point.
 If more than 1 atom is provided in the selection, the center of geometry (COG) is used as probe position. An example
@@ -85,8 +86,10 @@ is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/ATOM).
 point. In this mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
 define as ```selbond1 ---> selbond2```. An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/BOND).
 
-* In ``COORDINATE`` mode, a list of [X,Y,Z] coordinates will serve as probe point in all trajectory frames.
+* In ``COORDINATE`` mode, a [X,Y,Z] coordinate will serve as probe point in all trajectory frames.
 An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/COORDINATE).
+
+* In ``LIST`` mode, a list of [X,Y,Z] coordinates will serve as probe points, one for each trajectory frame.
 
 **IMPORTANT**:
 * All selections must be compatible with MDAnalysis syntax.
@@ -146,3 +149,7 @@ In Brazilian folklore, Tupã is considered a "manifestation of God in the form o
 
 ## Contact information
 E-mail: mdpoleto@vt.edu / jalemkul@vt.edu
+
+<a href="https://trackgit.com">
+<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/l02lg00zonn9v19irctl" alt="trackgit-views" />
+</a>
