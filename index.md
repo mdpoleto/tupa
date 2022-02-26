@@ -96,7 +96,7 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 <img src="pyTUPÃ_example.png" width="680">
 
-**pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. 
+**pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
