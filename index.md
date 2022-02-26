@@ -26,9 +26,6 @@ To easily use **TUPÃ**, copy the directory pathway to **TUPÃ** folder and incl
 alias tupa="python /path/to/the/cloned/repository/TUPA.py"
 ```
 
-To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
-Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
-
 
 ## TUPÃ Usage
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
