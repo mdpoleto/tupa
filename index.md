@@ -94,7 +94,7 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-<img src="pyTUPÃ_example.png" width="480">
+<img src="pyTUPÃ_example.png" width="680">
 
 **pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. 
 
