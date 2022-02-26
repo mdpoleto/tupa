@@ -3,7 +3,7 @@
 
 # **TUPÃ**: Electric field analyses for molecular simulations
 
-![alt text](https://github.com/mdpoleto/tupa/blob/main/LOGO/TUPÃ_LOGO.png "TUPÃ")
+<img src="https://github.com/mdpoleto/tupa/blob/main/Figures/TUPÃ_LOGO.png">
 
 ## What is TUPÃ?
 **TUPÃ** (pronounced as [*tu-pan*](https://translate.google.com/?hl=pt-BR&sl=pt&tl=en&text=tup%C3%A3&op=translate)) is a python algorithm that employs MDAnalysis engine to calculate electric fields at any point inside
@@ -99,7 +99,7 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-<img src="pyTUPÃ_example.png" width="680">
+<img src="https://github.com/mdpoleto/tupa/blob/main/Figures/pyTUPÃ_example.png" width="680">
 
 **pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
