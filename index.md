@@ -94,8 +94,9 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
-Choose the ```pyTUPÃ.py``` file and click Install.
+![alt text](pyTUPÃ_example.png)
+
+**pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. 
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
@@ -113,6 +114,8 @@ efield_point resname LIG and name O1, resname LIG and name C1, efield=[-94.2675,
 ```
 draw_bond_axis resname LIG and name O1, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
+
+To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab. Choose the ```pyTUPÃ.py``` file and click Install.
 
 --------------------------
 ## Citing TUPÃ
