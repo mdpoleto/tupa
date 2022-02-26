@@ -31,9 +31,6 @@ To easily use **TUPÃ**, copy the directory pathway to **TUPÃ** folder and incl
 alias tupa="python /path/to/the/cloned/repository/TUPA.py"
 ```
 
-To install the PyMOL plugin, open PyMOL > Plugin Manager and click on "Install New Plugin" tab.
-Load the **TUPÃ** plugin and use it via command-line within PyMOL. To usage instructions, read our FAQ.
-
 
 ## TUPÃ Usage
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
@@ -45,7 +42,7 @@ tupa -template config.conf
 The configuration file usually contains:
 ```
 [Environment Selection]
-sele_environment      = (string)             [default: None]
+sele_environment    = (string)             [default: None]
 
 [Probe Selection]
 mode                = (string)             [default: None]
@@ -53,6 +50,7 @@ selatom             = (string)             [default: None]
 selbond1            = (string)             [default: None]
 selbond2            = (string)             [default: None]
 probecoordinate     = [float,float,float]  [default: None]
+file_of_coordinates = (pathway to file)    [default: None]
 remove_self         = (True/False)         [default: False]
 remove_cutoff       = (float)              [default: 1 A ]
 
@@ -76,7 +74,7 @@ A complete explanation of each option in the configuration file is available via
 tupa -h
 ```
 
-**TUPÃ** has 3 calculations MODES:
+**TUPÃ** has 4 calculations MODES:
 
 * In ``ATOM`` mode, the coordinate of one atom will be tracked throughout the trajectory to serve as probe point.
 If more than 1 atom is provided in the selection, the center of geometry (COG) is used as probe position. An example
@@ -86,8 +84,10 @@ is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/ATOM).
 point. In this mode, the bond axis is used to calculate electric field alignment. By default, the bond axis is
 define as ```selbond1 ---> selbond2```. An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/BOND).
 
-* In ``COORDINATE`` mode, a list of [X,Y,Z] coordinates will serve as probe point in all trajectory frames.
+* In ``COORDINATE`` mode, a [X,Y,Z] coordinate will serve as probe point in all trajectory frames.
 An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Examples/COORDINATE).
+
+* In ``LIST`` mode, a list of [X,Y,Z] coordinates will serve as probe points, one for each trajectory frame.
 
 **IMPORTANT**:
 * All selections must be compatible with MDAnalysis syntax.
@@ -99,8 +99,9 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab.
-Choose the ```pyTUPÃ.py``` file and click Install.
+<img src="pyTUPÃ_example.png" width="680">
+
+**pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
@@ -118,6 +119,8 @@ efield_point resname LIG and name O1, resname LIG and name C1, efield=[-94.2675,
 ```
 draw_bond_axis resname LIG and name O1, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
+
+To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab. Choose the ```pyTUPÃ.py``` file and click Install.
 
 --------------------------
 ## Citing TUPÃ
