@@ -1,4 +1,4 @@
-![alt text](TUPÃ_LOGO.png)
+![TUPÃ logo](TUPÃ_LOGO.png)
 
 ## What is TUPÃ?
 **TUPÃ** (pronounced as [*tu-pan*](https://translate.google.com/?hl=pt-BR&sl=pt&tl=en&text=tup%C3%A3&op=translate)) is a python algorithm that employs MDAnalysis engine to calculate electric fields at any point inside
@@ -94,7 +94,7 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 ## TUPÃ PyMOL Plugin (pyTUPÃ)
 
-![alt text](pyTUPÃ_example.png)
+![pyTUPÃ - a PyMOL plugin](pyTUPÃ_example.png | width=480)
 
 **pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. 
 
