@@ -34,7 +34,7 @@ header = """
 
 template_content = """[Environment Selection]
 # The atoms from which we calculate the electric field
-sele_environment      = segid PROA
+sele_environment    = segid PROA
 
 
 [Probe Selection]
@@ -89,7 +89,7 @@ help = """
   # Configuration File Inputs
   ###########################################################################
   [Environment Selection]
-  sele_environment      = (string)             [default: None]
+  sele_environment    = (string)             [default: None]
 
   [Probe Selection]
   mode                = (string)             [default: None]
@@ -117,7 +117,7 @@ help = """
   # Configuration File Help
   ###########################################################################
   [Environment Selection]
-  sele_environment      = selection of atoms that exert the electric field in the
+  sele_environment    = selection of atoms that exert the electric field in the
                         calculation. Selection must be compatible with MDanalysis.
 
   [Probe Selection]
