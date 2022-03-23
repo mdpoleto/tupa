@@ -77,27 +77,32 @@ try:
 		try:
 			selatom = str(config['Probe Selection']["selatom"].strip('"'))
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "atom" mode, selatom must be defined!\n""")
+			sys.exit("""\n>>> ERROR: in "ATOM" mode, selatom must be defined!\n""")
 	elif mode == "bond":
 		try:
 			selbond1 = str(config['Probe Selection']["selbond1"].strip('"'))
 			selbond2 = str(config['Probe Selection']["selbond2"].strip('"'))
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "bond" mode, both selbond1 and selbond2 must be defined!\n""")
+			sys.exit("""\n>>> ERROR: in "BOND" mode, both selbond1 and selbond2 must be defined!\n""")
 	elif mode == "coordinate":
 		try:
 			tmp_probecoordinate = str(config['Probe Selection']["probecoordinate"]).strip('[]').split(",")
 			probecoordinate = [float(item) for item in tmp_probecoordinate]
 		except Exception as e2:
-			sys.exit("""\n>>> ERROR: in "coordinate" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
+			sys.exit("""\n>>> ERROR: in "COORDINATE" mode, a list of coordinates [X,Y,Z] must be provided!\n""")
+	elif mode == "list":
+		try:
+			file_of_coordinates = str(config['Probe Selection']["file_of_coordinates"].strip('"'))
+		except Exception as e2:
+			sys.exit("""\n>>> ERROR: in "LIST" mode, "file_of_coordinates" must be defined!\n""")
 	else:
-		sys.exit("""\n>>> ERROR: "mode" must be defined as "atom", "bond" or coordinate!\n""")
+		sys.exit("""\n>>> ERROR: "mode" must be defined as "ATOM", "BOND", "COORDINATE" or "LIST"!\n""")
 
 except Exception as e2:
-	sys.exit("""\n>>> ERROR: "mode" must be defined as "atom", "bond" or coordinate!\n""")
+	sys.exit("""\n>>> ERROR: "mode" must be defined as "ATOM", "BOND", "COORDINATE" or "LIST"!\n""")
 
 
-if mode == "coordinate":
+if mode == "coordinate" or mode == "list":
 	try:
 		remove_self = str(config['Probe Selection']["remove_self"]).lower()
 		if remove_self  == "true":
@@ -168,14 +173,16 @@ print('[Environment Selection]')
 print('sele_environment   = {}'.format(sele_elecfield))
 print()
 print("[Probe Selection]")
-print('mode               = {}'.format(mode))
+print('mode                = {}'.format(mode))
 if mode == "atom":
-	print('selatom            = {}'.format(selatom))
+	print('selatom             = {}'.format(selatom))
 elif mode == "bond":
-	print('selbond1           = {}'.format(selbond1))
-	print('selbond2           = {}'.format(selbond2))
+	print('selbond1            = {}'.format(selbond1))
+	print('selbond2            = {}'.format(selbond2))
 elif mode == "coordinate":
-	print('probecoordinate    = {}'.format(probecoordinate))
+	print('probecoordinate     = {}'.format(probecoordinate))
+elif mode == "list":
+	print('file_of_coordinates = {}'.format(file_of_coordinates))
 	if remove_self == True:
 		print('remove_self        = {}'.format(remove_self))
 		print('remove_cutoff      = {}'.format(remove_cutoff))
@@ -188,6 +195,11 @@ if include_solvent == True:
 print()
 print("[Time]")
 print('dt                 = {}'.format(dt))
+print()
+print("[Box Info]")
+print('redefine_box       = {}'.format(redefine_box))
+if redefine_box == True:
+	print('boxdimensions      = {}'.format(boxdimensions))
 
 ###############################################################################
 def mag(vector):
@@ -286,7 +298,7 @@ out.write("@type xy\n")
 
 outres = open(outdir + "ElecField_per_residue.dat",'w')
 outres.write("""@    title "Magnitude of Electric Field"\n@    xaxis  label "Residues"\n@    yaxis  label "MV/cm"\n""")
-outres.write("#time     EField_per_residue            Std.Deviation         EField_residue_alignement   Std.Deviation\n")
+outres.write("#time     Efield_per_residue            Std.Deviation         Alignment_percentage (%)    Alignment_Stdev\n")
 outres.write("@type xydy\n")
 
 outprobe = open(outdir + "probe_info.dat", "w")
@@ -294,12 +306,12 @@ outprobe.write("#time     probe_coordinates\n")
 
 if mode == "bond":
 	outproj = open(outdir + "ElecField_proj_onto_bond.dat",'w')
-	outproj.write("""@    title "Electric Field Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
+	outproj.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
 	outproj.write("#time      Magnitude                     Efield_X                      Efield_Y                     Efield_Z                   Direction\n")
 	outproj.write("@type xy\n")
 
 	outalig = open(outdir + "ElecField_alignment.dat",'w')
-	outalig.write("""@    title "Electric Field Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "Percentage"\n""")
+	outalig.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "Alignment_percentage"\n""")
 	outalig.write("#time     Alignment_percentage\n")
 	outalig.write("@type xy\n")
 
@@ -307,16 +319,40 @@ if mode == "bond":
 	outrbond.write("#time     rbondvec_in_meters                                          rbond_magnitude               rbond_unit_vector\n")
 
 ###############################################################################
+print("\n########################################################")
 # Creating Universe and making selections
 if top_file != None and traj_file != None:
 	u = mda.Universe(top_file, traj_file)
 else:
 	sys.exit("""\n>>> ERROR: Topology or Trajectory files missing. Are you not forgetting something?!\n""")
 
-# This is us being very verbose so people actually know what is happening
+# If mode == LIST, parse the file of coordinates
+if mode == 'list':
+	loc = open(file_of_coordinates, 'r')
+	list_of_coordinates = []
+	while True:
+		coorline = loc.readline()
+		if not coorline: break
+		if coorline[0] != "#" and coorline[0] != "@":
+			if len(coorline.split()) == 3:
+				try:
+					listcoorX = float(coorline.split()[0])
+					listcoorY = float(coorline.split()[1])
+					listcoorZ = float(coorline.split()[2])
+				except:
+					sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X Y Z). Check your inputs!\n""")
+				tmpcoorlist = [listcoorX, listcoorY, listcoorZ]
+				list_of_coordinates.append(tmpcoorlist)
+			else:
+				sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X Y Z). Check your inputs!\n""")
+
+	# Sanity check: list of coordinates should have the same length as the trajectory
+	if len(list_of_coordinates) != len(u.trajectory):
+		sys.exit("""\n>>> ERROR: File of coordinates and trajectory have different lengths (""" + str(len(list_of_coordinates)) + """ lines and """ + str(len(u.trajectory)) + """ frames)!\n""")
+
+###############################################################################
 print("\n########################################################")
 # Check whether trajectory file has box dimension information and redefine if requested
-
 if u.dimensions is not None:
 	boxangles = u.dimensions[3:]
 	checkangles = [i for i in boxangles if float(i) != 90.]
@@ -342,11 +378,13 @@ if u.dimensions is not None:
 else:
 	sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 
+###############################################################################
+# This is us being very verbose so people actually know what is happening
 if mode == "atom":
 	probe_selection = u.select_atoms(selatom)
 	if len(probe_selection) > 1:
 		print("\n>>> Running in ATOM mode!")
-		print(">>> Probe atoms (COG) = "+ str(probe_selection.atoms) + "\n")
+		print(">>> Probe atoms (using center of geometry) = "+ str(probe_selection.atoms) + "\n")
 	else:
 		print("\n>>> Running in ATOM mode!")
 		print(">>> Probe atom = "+ str(probe_selection.atoms[0].name) +"-"+ str(probe_selection.resnames[0]) + str(probe_selection.resnums[0]) + "\n")
@@ -363,23 +401,26 @@ elif mode == "coordinate":
 	print(">>> Probe XYZ position = " +  str(probe_selection))
 	if remove_self == True:
 		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
+elif mode == "list":
+	probe_selection = list_of_coordinates
+	print("\n>>> Running in LIST mode!")
+	print(">>> Probe XYZ positions = " + str(len(list_of_coordinates)) + """ XYZ coordinates""")
+	if remove_self == True:
+		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
 
 else:
 	sys.exit("\n>>> MODE should be 'bond' or 'atom' or 'coordinate'!")
 
-# Making selection of atoms that exert the electric field
+# Selecting the atoms that exert the electric field
 elecfield_selection = u.select_atoms(sele_elecfield)
 
 ###############################################################################
 # Sanity check: atoms in probe_selection should NOT be in elecfield_selection
 # if tmprefposition == probe_selection.center_of_geometry(). Checking that...
-sanity_flag = False
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			sanity_flag = True
-if sanity_flag == True:
-	print(">>> WARNING: Probe atom(s) within Environment selection! Consider using 'remove_self = True'!\n")
+			sys.exit(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Review your environment selection!\n>>> Exiting...\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -399,19 +440,19 @@ for atom in elecfield_selection.atoms:
 
 ###############################################################################
 print("\n########################################################")
-print("\n>>> Calculating Electric Field at time:")
+print("\n>>> Calculating Electric Field:")
 
 efield_total = {}
 
 for ts in u.trajectory[0: len(u.trajectory):]:
-
+	# if we detected that box needs dimensions, we redefine it on each frame here
 	if always_redefine_box_flag == True:
 		ts.dimensions = boxdimensions
 	else:
 		pass
 
 	########################################################
-	# Update environment and target selections
+	# Update environment selections and probe position
 	if mode == "atom":
 		if len(probe_selection) > 1:
 			refposition = probe_selection.center_of_geometry()
@@ -423,15 +464,18 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		position2 = bond2.atoms[0].position
 
 		rbond_vec = (position2 - position1) # axis from ref1 to ref2
-		rbond_vec = rbond_vec*(10**(-10)) #convert from Angstrom to meter
+		rbond_vec = rbond_vec*(10**(-10)) # convert from Angstrom to meter
 		rbond_hat = unit_vector(rbond_vec)
 
-		refposition = (position1 + position2)/2 #midway for both atoms
+		refposition = (position1 + position2)/2 # midway for both atoms
 
 	elif mode == "coordinate":
 		refposition = probe_selection
 
+	elif mode == "list":
+		refposition = probe_selection[ts.frame] # update probe position from the list
 
+	# We incorporate the solvent selection around the probe here for each mode
 	if include_solvent == True:
 		if mode == "atom":
 			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
@@ -439,7 +483,10 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
 		elif mode == "coordinate":
 			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+		elif mode == "list":
+			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
 
+		# translate molecules within selection that are beyond the PBC and incorporate into the environment
 		tmp_selection = pack_around(tmp_selection, refposition, ts.dimensions)
 		enviroment_selection = elecfield_selection + tmp_selection
 	else:
@@ -452,21 +499,22 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	time = "{:.0f}".format(frame*dt)
 	print("Time = " + str(time) + " ps... (Probe position: " + str(refposition) + ")")
 
+	# Write the probe coordinates
 	listprobe = "[" + str(refposition[0]) + "," + str(refposition[1]) + "," + str(refposition[2]) + "]"
 	lineprobe = str(time).ljust(10,' ') +  listprobe.ljust(60,' ') + "\n"
 	outprobe.write(lineprobe)
 
-	# Dumping a specific frame
+	# Dumping a specific frame if asked
 	if dumptime != None:
 		if float(dumptime) == float(time):
 			print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "environment_" + time + "ps.pdb!")
 			enviroment_selection.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
-	# Take absolute coordinates from probecoordinate
-	coordX, coordY, coordZ = refposition
 	# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
-	self_contribution = enviroment_selection.select_atoms("point  " + str(coordX) + "  " + str(coordY) + "  " + str(coordZ) + "  " + str(remove_cutoff) + "  ", periodic=True)
+	# Such approach is only available to COORDINATE mode. ATOM and BOND modes can achieve the same behavior
+	# by adjusting the environment selection accordingly.
+	self_contribution = enviroment_selection.select_atoms("point  " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + "  " + str(remove_cutoff) + "  ", periodic=True)
 
 	if len(self_contribution.atoms) > 0:
 		if remove_self == True:
@@ -484,7 +532,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	yfield_list_frame = []
 	zfield_list_frame = []
 
-	# Iterating over all atoms in selection to get their contributions
+	# Iterating over all atoms in environment selection to get their contributions
 	for atom in enviroment_selection.atoms:
 		residue = str(atom.resname) + "_" + str(atom.resid)
 		#print(residue)
@@ -512,7 +560,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		else:
 			pass
 
-	# Sum the contributions of all atoms to get the resultant Efield
+	# Sum the contributions of all atoms in each axis to get the resultant Efield
 	totalEfx = np.sum(xfield_list_frame)
 	totalEfy = np.sum(yfield_list_frame)
 	totalEfz = np.sum(zfield_list_frame)
@@ -525,7 +573,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	########################################################
 	# Write information exclusive to BOND mode
 	if mode == "bond":
-		# Calculate projection
+		# Calculate efield projection
 		Efprojection = projection(totalEf,rbond_vec)
 		Efproj_x, Efproj_y, Efproj_z = Efprojection
 
@@ -573,10 +621,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		resEfmag = mag(resEf)
 		# calculate the projection and alignment for each residue
 		if mode == "bond":
-			resEfproj = projection(resEf,rbond_vec)
+			resEfproj = projection(resEf,rbond_vec)  # resEf can have a higher magnitude than the total field.
 		else:
 			resEfproj = projection(resEf,totalEf)
-		resEfalignment = alignment(mag(resEfproj),totalEfmag)
+		resEfalignment = alignment(mag(resEfproj),totalEfmag) # resEf can have a higher magnitude than the total field,
+		                                                      # which means % can be > 100%
 
 		# Update the total dictionary with values of THIS FRAME
 		resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp = dict_res_total[r]
@@ -588,7 +637,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		dict_res_total[r] = [resEfx_tmp, resEfy_tmp, resEfz_tmp, resEfmag_tmp, res_alignment_tmp]
 
 ###############################################################################
-# Calculate average Efield vector and deviation of each frame to the average
+# Calculate average Efield vector and its angle to the field vector of each frame (Efield(t)).
+# The ultimate goal here is to create a 3D standard deviation to be plotted with the field vector in pyTUPÃ.
 avgfield   = np.average(list(efield_total.values()), axis=0)
 mag_list   = []
 angle_list = []
@@ -608,16 +658,18 @@ for time,field in efield_total.items():
 	lineangle  = str(time).ljust(10,' ') + str("{:.12e}".format(angle)).ljust(30,' ') + str("{:.12e}".format(projmag)).ljust(30,' ') + str("{:.12e}".format(alig)).ljust(30,' ') + "\n"
 	outangle.write(lineangle)
 
+# write average angle between Efield(t) and the average Efield.
 avgangle   = np.average(angle_list)
 stdevangle = np.std(angle_list)
 outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(5,' '))
 outangle.close()
 
+# write average Efield to the output file
 avgfield   = np.average(mag_list)
 stdevfield = np.std(mag_list)
 out.write("#AVG: " + str("{:.12e}".format(avgfield)).rjust(30,' ') + " +- " + str("{:.12e}".format(stdevfield)).ljust(30,' '))
 ###############################################################################
-# Calculate the average contribution of each residue throughout trajectory
+# Calculate the average contribution of each residue to the total field
 for r, comp in dict_res_total.items():
 	r = r.partition('_')[2] # ignore resname and keep resid
 	res_efield_x, res_efield_y, res_efield_z, resEfmag, resEfaligned = comp

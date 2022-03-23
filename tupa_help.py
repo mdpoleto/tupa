@@ -4,7 +4,7 @@
 #DEC 2021
 
 
-header = """
+#header = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
 	#                             TUPÃ 1.0.0 (2022)                           #
@@ -19,19 +19,34 @@ header = """
 	# LGPL-3.0                                                                #
 	###########################################################################\n\n"""
 
+header = """
+	###########################################################################
+	#                 TUPÃ - Electric Field analyses algorithm                #
+	#                             TUPÃ 1.0.0 (2022)                           #
+	#                                                                         #
+	#                    Marcelo D Poleto, Justin A Lemkul                    #
+	#                                                                         #
+	#            In case of bugs or suggestions, please contact us:           #
+	#                              mdpoleto@vt.edu                            #
+	#                                                                         #
+	# LGPL-3.0                                                                #
+	###########################################################################\n\n"""
+
 template_content = """[Environment Selection]
 # The atoms from which we calculate the electric field
-sele_environment      = segid PROA
+sele_environment    = segid PROA
 
 
 [Probe Selection]
 # Provide the probe selection for the MODE of you choice
 # e.g. if bond is used, then selbond1 and selbond2 must be defined.
-mode                = ATOM    # ATOM or BOND or COORDINATE
+mode                = ATOM    # ATOM or BOND or COORDINATE or LIST
 selatom             = segid PROA and (resid 160 and name OG)
 selbond1            = segid PROA and (resid 160 and name OG)
 selbond2            = segid LIG and name C1
 probecoordinate     = [0,0,0]
+file_of_coordinates = /path/to/file/of/list/of/probe/coordinates
+
 remove_self         = True    # For COORDINATE mode only, whether remove the
                               # contribution of self within a cutoff of the coordinate
 remove_cutoff       = 1       # in Angstrom
@@ -52,7 +67,7 @@ boxdimensions       = [float,float,float,float,float,float]
 
 # IMPORTANT:
 # 1- All selections must be compatible with MDAnalysis
-# 2- remove_self only works in COORDINATE mode. For ATOM or BOND mode, analogous
+# 2- remove_self only works in COORDINATE and LIST modes. For ATOM or BOND mode, analogous
 # behavior can be created by removing whatever contribution you do not want from
 # sele_environment. Be smart about your selections.
 # 3- the ATOM mode uses 1 atom to track its position througout trajectory and
@@ -74,7 +89,7 @@ help = """
   # Configuration File Inputs
   ###########################################################################
   [Environment Selection]
-  sele_environment      = (string)             [default: None]
+  sele_environment    = (string)             [default: None]
 
   [Probe Selection]
   mode                = (string)             [default: None]
@@ -82,6 +97,7 @@ help = """
   selbond1            = (string)             [default: None]
   selbond2            = (string)             [default: None]
   probecoordinate     = [float,float,float]  [default: None]
+  file_of_coordinates = (pathway to file)    [default: None]
   remove_self         = (True/False)         [default: False]
   remove_cutoff       = (float)              [default: 1 A ]
 
@@ -101,12 +117,12 @@ help = """
   # Configuration File Help
   ###########################################################################
   [Environment Selection]
-  sele_environment      = selection of atoms that exert the electric field in the
+  sele_environment    = selection of atoms that exert the electric field in the
                         calculation. Selection must be compatible with MDanalysis.
 
   [Probe Selection]
   mode                = defines the tipe of calculation to be done. Possible
-                        values are: ATOM, BOND and COORDINATE.
+                        values are: ATOM, BOND, COORDINATE and LIST.
 
                         In ATOM mode, the coordinate of one atom will be tracked
                         throughout the trajectory to serve as probe point. If
@@ -119,13 +135,17 @@ help = """
                         electric field alignment. By default, the bond axis is
                         define as selbond1 ---> selbond2.
 
-                        In COORDINATE mode, a list of [X,Y,Z] coordinates will
+                        In COORDINATE mode, a [X,Y,Z] coordinate will
                         serve as probe point in all trajectory frames.
+
+                        In LIST mode, a list of [X,Y,Z] coordinates will
+                        serve as probe points, one for each trajectory frame.
 
   selatom             = selection used in ATOM mode (compatible with MDanalysis)
   selbond1            = 1st selection used in BOND mode (compatible with MDanalysis)
   selbond2            = 2nd selection used in BOND mode (compatible with MDanalysis)
-  probecoordinate     = list of [X,Y,Z] coordinates (in Angstroms)
+  probecoordinate     = [X,Y,Z] coordinate (in Angstroms)
+  file_of_coordinates = pathway to file of a list of coordinates to be tracked as probes
   remove_self         = True or False. Only works for COORDINATE mode. It removes
                         the contribution of atoms defined in sele_environment within
                         within a determined cutoff to the electric field.
