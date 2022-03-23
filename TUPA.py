@@ -229,7 +229,7 @@ def angle_between(v1, v2):
 	angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 	return angle_rad
 
-def calc_EletricProperties(atom,refposition):
+def calc_EletricField(atom,refposition):
 
 	# Set Epsilon to your medium (in C**2/N*(m**2))
 	Epsilon = 8.8541878128*(10**(-12))
@@ -541,7 +541,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		else:
 			pass
 
-		Ef_xyz = calc_EletricProperties(atom, refposition)
+		Ef_xyz = calc_EletricField(atom, refposition)
 
 		Efx, Efy, Efz = Ef_xyz
 		xfield_list_frame.append(Efx)
