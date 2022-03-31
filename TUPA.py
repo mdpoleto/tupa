@@ -420,7 +420,7 @@ elecfield_selection = u.select_atoms(sele_elecfield)
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			sys.exit(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Review your environment selection!\n>>> Exiting...\n")
+			sys.exit(">>> ERROR: Probe atom(s) within Environment selection (" + str(atom) + ")! Review your environment selection!\n>>> Exiting...\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -518,11 +518,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	if len(self_contribution.atoms) > 0:
 		if remove_self == True:
-			print(""">>> Warning! Removing self contribution of: """ + str(self_contribution.atoms))
+			print(""">>> WARNING! Removing self contribution of: """ + str(self_contribution.atoms))
 			# Remove self_contribution for this frame
 			enviroment_selection = enviroment_selection - self_contribution
 		else:
-			print(""">>> Warning! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
+			print(""">>> WARNING! Some atoms are closed than """ + str(remove_cutoff) + """ A : """ + str(self_contribution.atoms))
 
 	########################################################
 	# opening a temporary dictionary to hold the contribution of each residue for each frame
