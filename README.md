@@ -93,13 +93,13 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 * All selections must be compatible with MDAnalysis syntax.
 * TUPÃ was designed to work with ```ORTHORHOMBIC``` box types. We are working to support for rhombic dodecahedron and truncated octahedron boxes.
 * Trajectories MUST be re-imaged before running TUPÃ. *Make sure your probe is well centered in the box*.
-* Molecules in ```solvent_selection``` beyond the PBC and re-imaged. This is achieved by applying the ```around``` selection feature in MDAnalysis and shifting the coordinates.
-* If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for rotations and translations.
+* Molecules in ```solvent_selection``` beyond the PBC are re-imaged. This is achieved by applying the ```around``` selection feature in MDAnalysis and properly shifting the coordinates.
+* If using COORDINATE mode, be mindful that our code does not account for rotations and translations of coordinates. Be mindful of the coordinate selection.
 
 
 ## TUPÃ PyMOL Plugin (pyTUPÃmol)
 
-<img src="https://github.com/mdpoleto/tupa/blob/main/Figures/pyTUPÃ_example.png" width="680">
+<img src="https://github.com/mdpoleto/tupa/blob/main/Figures/pyTUPÃmol_example.png" width="680">
 
 **pyTUPÃmol** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
