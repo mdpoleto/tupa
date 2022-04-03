@@ -37,7 +37,7 @@ print(tupa_help.header)
 
 
 if cmd.help is True:
-	ap.print_help()
+	#ap.print_help()
 	print(tupa_help.help)
 	sys.exit()
 else:

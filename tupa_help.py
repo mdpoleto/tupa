@@ -4,7 +4,7 @@
 #DEC 2021
 
 
-#header = """
+#header2 = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
 	#                             TUPÃ 1.0.0 (2022)                           #
@@ -22,7 +22,7 @@
 header = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
-	#                             TUPÃ 1.0.0 (2022)                           #
+	#                             TUPÃ 1.1.0 (2022)                           #
 	#                                                                         #
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
@@ -85,7 +85,6 @@ boxdimensions       = [float,float,float,float,float,float]
 """
 
 help = """
-
   # Configuration File Inputs
   ###########################################################################
   [Environment Selection]
