@@ -7,11 +7,13 @@
 #header2 = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
-	#                             TUPÃ 1.0.0 (2022)                           #
+	#                             TUPÃ 1.1.0 (2022)                           #
 	#                                                                         #
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
-	#                    Paper metadata here..............                    #
+	#          TUPÃ: Electric field analyses for molecular simulations        #
+	#         Journal of Computational Chemistry (2022), v X, YYYY-ZZZZ       #
+	#                         doi:                                            #
 	#                                                                         #
 	#            In case of bugs or suggestions, please contact us:           #
 	#                              mdpoleto@vt.edu                            #
