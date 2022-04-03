@@ -97,11 +97,11 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 * If using COORDINATE mode, make sure your trajectory has no translations and rotations. Our code does not account for rotations and translations.
 
 
-## TUPÃ PyMOL Plugin (pyTUPÃ)
+## TUPÃ PyMOL Plugin (pyTUPÃmol)
 
 <img src="https://github.com/mdpoleto/tupa/blob/main/Figures/pyTUPÃ_example.png" width="680">
 
-**pyTUPÃ** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
+**pyTUPÃmol** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
