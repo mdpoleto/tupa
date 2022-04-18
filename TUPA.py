@@ -508,7 +508,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	if dumptime != None:
 		if float(dumptime) == float(time):
 			print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "environment_" + time + "ps.pdb!")
-			enviroment_selection.write(outdir + "environment_" + time + "ps.pdb")
+			dump_sel = u.select_atoms("all")
+			dump_sel.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
 	# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
