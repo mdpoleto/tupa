@@ -71,7 +71,7 @@ boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
 
 A complete explanation of each option in the configuration file is available via the command:
 ```
-tupa -h
+TUPA.py -h
 ```
 
 **TUPÃ** has 4 calculations MODES:
