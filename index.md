@@ -21,17 +21,16 @@ After, just clone this repository into a folder of your choice:
 git clone https://github.com/mdpoleto/tupa.git
 ```
 
-To easily use **TUPÃ**, copy the directory pathway to **TUPÃ** folder and include an alias in your ~/.bashrc:
+To easily use **TUPÃ**, export the pathway to the executable *TUPA.py* in your ~/.bashrc:
 ```
-alias tupa="python /path/to/the/cloned/repository/TUPA.py"
+export PATH=/path/to/the/cloned/repository/:$PATH
 ```
-
 
 ## TUPÃ Usage
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
 which can be obtained via the command:
 ```
-tupa -template config.conf
+TUPA.py -template config.conf
 ```
 
 The configuration file usually contains:
@@ -66,7 +65,7 @@ boxdimensions       = Box dimension information [A,B,C,Alpha,Beta,Gamma]. A,B
 
 A complete explanation of each option in the configuration file is available via the command:
 ```
-tupa -h
+TUPA.py -h
 ```
 
 **TUPÃ** has 4 calculations MODES:
@@ -137,7 +136,7 @@ Bibtex entry:
     url = {},
     note = {},
     eprint = {},
-}
+    }
 ```
 ## Why TUPÃ?
 
