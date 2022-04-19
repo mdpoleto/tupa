@@ -7,7 +7,7 @@
 #header2 = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
-	#                             TUPÃ 1.1.0 (2022)                           #
+	#                             TUPÃ 1.2.0 (2022)                           #
 	#                                                                         #
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
