@@ -132,11 +132,9 @@ Bibtex entry:
     volume = {n/a},
     number = {n/a},
     pages = {},
-    keywords = {electric field, electrostatics, force fields, molecular dynamics, molecular mechanics},
     doi = {https://doi.org/10.1002/jcc.26873},
     url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/jcc.26873},
-    eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/jcc.26873},
-    abstract = {Abstract We introduce TUPÃ, a Python-based algorithm to calculate and analyze electric fields in molecular simulations. To demonstrate the features in TUPÃ, we present three test cases in which the orientation and magnitude of the electric field exerted by biomolecules help explain biological phenomena or observed kinetics. As part of TUPÃ, we also provide a PyMOL plugin to help researchers visualize how electric fields are organized within the simulation system. The code is freely available and can be obtained at https://mdpoleto.github.io/tupa/.}
+    eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/jcc.26873}}
 }
 ```
 ## Why TUPÃ?
