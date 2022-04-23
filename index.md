@@ -7,7 +7,7 @@ field vectors together with molecules.
 
 Required packages:
 
-* MDAnalysis >= 1.0.0
+* MDAnalysis >= 2.0.0
 * Python     >= 3.x
 * Numpy      >= 1.2.x
 
