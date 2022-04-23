@@ -4,29 +4,16 @@
 #DEC 2021
 
 
-#header2 = """
+header = """
 	###########################################################################
 	#                 TUPÃ - Electric Field analyses algorithm                #
-	#                             TUPÃ 1.1.0 (2022)                           #
+	#                             TUPÃ 1.2.0 (2022)                           #
 	#                                                                         #
 	#                    Marcelo D Poleto, Justin A Lemkul                    #
 	#                                                                         #
 	#          TUPÃ: Electric field analyses for molecular simulations        #
-	#         Journal of Computational Chemistry (2022), v X, YYYY-ZZZZ       #
-	#                         doi:                                            #
-	#                                                                         #
-	#            In case of bugs or suggestions, please contact us:           #
-	#                              mdpoleto@vt.edu                            #
-	#                                                                         #
-	# LGPL-3.0                                                                #
-	###########################################################################\n\n"""
-
-header = """
-	###########################################################################
-	#                 TUPÃ - Electric Field analyses algorithm                #
-	#                             TUPÃ 1.1.0 (2022)                           #
-	#                                                                         #
-	#                    Marcelo D Poleto, Justin A Lemkul                    #
+	#                  Journal of Computational Chemistry (2022)              #
+	#                    url: http://doi.org/10.1002/jcc.26873                #
 	#                                                                         #
 	#            In case of bugs or suggestions, please contact us:           #
 	#                              mdpoleto@vt.edu                            #
