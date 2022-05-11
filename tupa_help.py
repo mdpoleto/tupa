@@ -13,7 +13,7 @@ header = """
 	#                                                                         #
 	#          TUPÃ: Electric field analyses for molecular simulations        #
 	#                  Journal of Computational Chemistry (2022)              #
-	#                    url: http://doi.org/10.1002/jcc.26873                #
+	#                   url: https://doi.org/10.1002/jcc.26873                #
 	#                                                                         #
 	#            In case of bugs or suggestions, please contact us:           #
 	#                              mdpoleto@vt.edu                            #
