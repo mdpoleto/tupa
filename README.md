@@ -135,7 +135,7 @@ Bibtex entry:
     author = {Pol\^{e}to, M D and Lemkul, J A},
     title = {TUPÃ: Electric field analyses for molecular simulations},
     journal = {Journal of Computational Chemistry},
-	volume = {43},
+    volume = {43},
     number = {16},
     pages = {1113-1119},
     keywords = {electric field, electrostatics, force fields, molecular dynamics, molecular mechanics},
