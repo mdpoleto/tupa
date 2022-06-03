@@ -9,7 +9,8 @@ import numpy as np
 import configparser as cp
 import warnings
 sys.dont_write_bytecode = True
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", message="Found no information for attr:")
+warnings.filterwarnings("ignore", message="Found missing chainIDs")
 
 import tupa_help
 
@@ -512,7 +513,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 			print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "frame_" + time + "ps.pdb!")
 			dump_sel = u.select_atoms("all")
 			dump_sel.write(outdir + "frame_" + time + "ps.pdb")
-			#print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "frame_" + time + "ps.pdb!")
 			dump_sel2 = enviroment_selection.select_atoms("all")
 			dump_sel2.write(outdir + "environment_" + time + "ps.pdb")
 
