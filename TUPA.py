@@ -7,7 +7,9 @@ import sys, os, argparse, timeit
 import MDAnalysis as mda
 import numpy as np
 import configparser as cp
+import warnings
 sys.dont_write_bytecode = True
+warnings.filterwarnings("ignore", category=UserWarning)
 
 import tupa_help
 
