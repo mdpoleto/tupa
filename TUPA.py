@@ -678,7 +678,7 @@ stdez  = np.std(avgz)
 avgmag = np.average(mag_list)
 stdmag = np.std(mag_list)
 
-out.write("#---#")
+out.write("#---#\n")
 out.write("#AVG:     " + str("{:.12e}".format(avgmag)).ljust(30,' ') + str("{:.12e}".format(avgx)).ljust(30,' ') + str("{:.12e}".format(avgy)).ljust(30,' ') + str("{:.12e}".format(avgz)).ljust(30,' ') + "\n")
 out.write("#STDEV:   " + str("{:.12e}".format(stdmag)).ljust(30,' ') + str("{:.12e}".format(stdex)).ljust(30,' ') + str("{:.12e}".format(stdey)).ljust(30,' ') + str("{:.12e}".format(stdez)).ljust(30,' ') + "\n")
 ###############################################################################
