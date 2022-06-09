@@ -102,10 +102,10 @@ def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, h
 	xyz2 = get_coord(atom2)
 	normal = cpv.normalize(cpv.sub(xyz1, xyz2))
 
-	print("\n##############################")
-	print("####### Running pyTUPÃ #######")
+	print("\n###############################")
+	print("###### Running pyTUPÃmol ######")
 	print("Bond axis unit vectors (r_hat)= ", normal)
-	print("##############################\n")
+	print("###############################\n")
 
 	if hlength < 0 or hradius < 0:
 		hlength=0.2
@@ -169,7 +169,7 @@ def efield_bond(bond_atom1='pk1', bond_atom2='pk2', efield=None, scale=1.0, radi
 	efieldmag = mag(efield)
 
 	print("\n##############################")
-	print("####### Running pyTUPÃ #######")
+	print("##### Running pyTUPÃmol ######")
 	print("Probe position = ", xyz)
 	print("Electric Field (scaled) = ", efield)
 	print("Electric Field magnitude = ", efieldmag)
@@ -239,7 +239,7 @@ def efield_point(point='pk1', efield=None, scale=1.0, radius=0.1, hlength=0.3, h
 	efieldmag = mag(efield)
 
 	print("\n##############################")
-	print("####### Running pyTUPÃ #######")
+	print("##### Running pyTUPÃmol ######")
 	print("Probe position = ", xyz)
 	print("Electric Field (scaled) = ", efield)
 	print("Electric Field magnitude = ", efieldmag)

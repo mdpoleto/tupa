@@ -481,13 +481,13 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	# We incorporate the solvent selection around the probe here for each mode
 	if include_solvent == True:
 		if mode == "atom":
-			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " " + selatom + ") and (" + solvent_selection + ")", periodic=True)
 		elif mode == "bond":
-			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(around " + str(solvent_cutoff) + " (" + selbond1 + " or " + selbond2 +")) and (" + solvent_selection + ")", periodic=True)
 		elif mode == "coordinate":
-			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and (" + solvent_selection + ")", periodic=True)
 		elif mode == "list":
-			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and " + solvent_selection, periodic=True)
+			tmp_selection = u.select_atoms("(point " + str(refposition[0]) + " " + str(refposition[1]) + " " + str(refposition[2]) + " " + str(solvent_cutoff) + ") and (" + solvent_selection + ")", periodic=True)
 
 		# translate molecules within selection that are beyond the PBC and incorporate into the environment
 		tmp_selection = pack_around(tmp_selection, refposition, ts.dimensions)
