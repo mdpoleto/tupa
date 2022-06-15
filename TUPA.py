@@ -423,7 +423,7 @@ elecfield_selection = u.select_atoms(sele_elecfield)
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			sys.exit(">>> ERROR: Probe atom(s) within Environment selection (" + str(atom) + ")! Review your environment selection!\n>>> Exiting...\n")
+			print(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Make sure you know what you are doing!\n>>> Continuing...\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
