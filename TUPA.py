@@ -583,9 +583,9 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		Efprojection = projection(totalEf,rbond_vec)
 		Efproj_x, Efproj_y, Efproj_z = Efprojection
 
-		# Calculate projection direction
+		# Calculate projection direction (either 1 or -1)
 		proj_direction = np.cos(angle_between(totalEf,rbond_vec))/abs(np.cos(angle_between(totalEf,rbond_vec)))
-		# Update the Efield sign depending on the direction
+		# Update the Efield sign depending on the direction (multiplying by 1 or -1)
 		totalEfmag = totalEfmag*proj_direction
 		Efprojectionmag = mag(Efprojection)*proj_direction
 
