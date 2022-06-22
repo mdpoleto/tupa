@@ -28,7 +28,7 @@ git clone https://github.com/mdpoleto/tupa.git
 
 To easily use **TUPÃ**, export the pathway to the executable *TUPA.py* in your ~/.bashrc:
 ```
-export PATH=/path/to/the/cloned/repository/:$PATH
+export PATH="/path/to/the/cloned/repository/":$PATH
 ```
 
 
@@ -112,7 +112,7 @@ efield_point segid LIG and name O1, efield=[-117.9143, 150.3252, 86.5553], scale
 
 * **efield_bond**: create a vector midway between 2 selected atoms.
 ```
-efield_point resname LIG and name O1, resname LIG and name C1, efield=[-94.2675, -9.6722, 58.2067], scale=0.01, color="blue", name="efield_OG-C1"
+efield_bond resname LIG and name O1, resname LIG and name C1, efield=[-94.2675, -9.6722, 58.2067], scale=0.01, color="blue", name="efield_OG-C1"
 ```
 
 * **draw_bond_axis**: create a vector representing the axis between 2 atoms.
