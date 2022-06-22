@@ -11,6 +11,7 @@ import warnings
 sys.dont_write_bytecode = True
 warnings.filterwarnings("ignore", message="Found no information for attr:")
 warnings.filterwarnings("ignore", message="Found missing chainIDs")
+np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
 import tupa_help
 
@@ -31,8 +32,8 @@ ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
 ap.add_argument('-template', type=str, default=None, required=False, metavar='',
                 help='Create a template for input configuration file (default: config_sample.dat)')
-ap.add_argument('-dumptime', type=str, default=None, required=False, metavar='',
-                help='Choose a time (in ps) to dump the coordinates from.')
+ap.add_argument('-dumptime', type=int, default=None, required=False, metavar='', nargs='+',
+                help='Choose times (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
@@ -51,7 +52,10 @@ traj_file     = cmd.traj
 outdir        = cmd.outdir
 configinput   = cmd.config
 template      = cmd.template
-dumptime      = cmd.dumptime
+if cmd.dumptime == None:
+	dumptime = []
+else:
+	dumptime      = cmd.dumptime
 ###############################################################################
 # Stablishing default config values
 config = cp.ConfigParser(allow_no_value=True, inline_comment_prefixes="#")
@@ -296,13 +300,16 @@ else:
 
 out = open(outdir + "ElecField.dat",'w')
 out.write("""@    title "Electric Field"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
-out.write("#time      Magnitude                     Efield_X                      Efield_Y                     Efield_Z\n")
+out.write("#time      Magnitude          Efield_X            Efield_Y            Efield_Z\n")
 out.write("@type xy\n")
 
 outres = open(outdir + "ElecField_per_residue.dat",'w')
 outres.write("""@    title "Magnitude of Electric Field"\n@    xaxis  label "Residues"\n@    yaxis  label "MV/cm"\n""")
-outres.write("#time     Efield_per_residue            Std.Deviation         Alignment_percentage (%)    Alignment_Stdev\n")
+outres.write("#time     Efield_per_residue  Std.Deviation       Alignment_percent   Alignment_Stdev\n")
 outres.write("@type xydy\n")
+
+outangle = open(outdir + "Spatial_Deviation.dat", "w")
+outangle.write("#time   Angle(Efield(t), avg_field)   Projection(Efield(t), avg_field)   Alignment(Efield(t), avg_field)\n")
 
 outprobe = open(outdir + "probe_info.dat", "w")
 outprobe.write("#time     probe_coordinates\n")
@@ -310,12 +317,12 @@ outprobe.write("#time     probe_coordinates\n")
 if mode == "bond":
 	outproj = open(outdir + "ElecField_proj_onto_bond.dat",'w')
 	outproj.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
-	outproj.write("#time      Magnitude                     Efield_X                      Efield_Y                     Efield_Z                   Direction\n")
+	outproj.write("#time      Magnitude          Efield_X            Efield_Y            Efield_Z          Direction\n")
 	outproj.write("@type xy\n")
 
 	outalig = open(outdir + "ElecField_alignment.dat",'w')
 	outalig.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "Alignment_percentage"\n""")
-	outalig.write("#time     Alignment_percentage\n")
+	outalig.write("#time     Alignment_percent   Angle\n")
 	outalig.write("@type xy\n")
 
 	outrbond = open(outdir + "bond_axis_info.dat", "w")
@@ -423,7 +430,7 @@ elecfield_selection = u.select_atoms(sele_elecfield)
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			print(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Make sure you know what you are doing!\n>>> Continuing...\n")
+			print(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Make sure you know what you are doing! Continuing...\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
@@ -445,7 +452,11 @@ for atom in elecfield_selection.atoms:
 print("\n########################################################")
 print("\n>>> Calculating Electric Field:")
 
-efield_total = {}
+efield_total     = {}
+projection_total = {}
+align_list       = []
+angle_list       = []
+
 
 for ts in u.trajectory[0: len(u.trajectory):]:
 	# if we detected that box needs dimensions, we redefine it on each frame here
@@ -508,13 +519,13 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	outprobe.write(lineprobe)
 
 	# Dumping a specific frame if asked
-	if dumptime != None:
-		if float(dumptime) == float(time):
-			print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "frame_" + time + "ps.pdb!")
-			dump_sel = u.select_atoms("all")
-			dump_sel.write(outdir + "frame_" + time + "ps.pdb")
-			dump_sel2 = enviroment_selection.select_atoms("all")
-			dump_sel2.write(outdir + "environment_" + time + "ps.pdb")
+	dumptime = np.array(dumptime, dtype=float)
+	if float(time) in dumptime:
+		print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "frame_" + time + "ps.pdb!")
+		dump_sel = u.select_atoms("all")
+		dump_sel.write(outdir + "frame_" + time + "ps.pdb")
+		dump_sel2 = enviroment_selection.select_atoms("all")
+		dump_sel2.write(outdir + "environment_" + time + "ps.pdb")
 
 	# Evaluate self_contribution removal
 	# selects all atoms from environment within a cutoff of a point in space (point X Y Z cutoff)
@@ -582,23 +593,27 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		# Calculate efield projection
 		Efprojection = projection(totalEf,rbond_vec)
 		Efproj_x, Efproj_y, Efproj_z = Efprojection
+		projection_total[time] = [Efproj_x, Efproj_y, Efproj_z]
 
-		# Calculate projection direction
-		proj_direction = np.cos(angle_between(totalEf,rbond_vec))/abs(np.cos(angle_between(totalEf,rbond_vec)))
-		# Update the Efield sign depending on the direction
+		# Calculate projection direction (either 1 or -1)
+		angle_rad = angle_between(totalEf,rbond_vec)
+		proj_direction = np.cos(angle_rad)/abs(np.cos(angle_rad))
+		# Update the Efield sign depending on the direction (multiplying by 1 or -1)
 		totalEfmag = totalEfmag*proj_direction
 		Efprojectionmag = mag(Efprojection)*proj_direction
 
 		# write Efield
-		lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
+		lineEfield  = str(time).ljust(10,' ') + str("{:.6f}".format(totalEfmag)).ljust(20,' ') + str("{:.6f}".format(totalEfx)).ljust(20,' ') + str("{:.6f}".format(totalEfy)).ljust(20,' ') + str("{:.6f}".format(totalEfz)).ljust(20,' ') + "\n"
 		out.write(lineEfield)
 		# Write Efield projection
-		lineproj = str(time).ljust(10,' ') + str("{:.12e}".format(Efprojectionmag)).ljust(30,' ') + str("{:.12e}".format(Efproj_x)).ljust(30,' ') + str("{:.12e}".format(Efproj_y)).ljust(30,' ') + str("{:.12e}".format(Efproj_z)).ljust(30,' ') + str(proj_direction) + "\n"
+		lineproj = str(time).ljust(10,' ') + str("{:.6f}".format(Efprojectionmag)).ljust(20,' ') + str("{:.6f}".format(Efproj_x)).ljust(20,' ') + str("{:.6f}".format(Efproj_y)).ljust(20,' ') + str("{:.6f}".format(Efproj_z)).ljust(20,' ') + str(proj_direction) + "\n"
 		outproj.write(lineproj)
 
 		# Calculate and write percentage of projection alignment
-		aligned = alignment(Efprojectionmag,totalEfmag)
-		linealig = str(time).ljust(10,' ') + str("{:.12e}".format(aligned)).ljust(30,' ') + "\n"
+		aligned = alignment(Efprojectionmag,totalEfmag)*proj_direction
+		align_list.append(aligned)
+		angle_list.append(np.degrees(angle_rad))
+		linealig = str(time).ljust(10,' ') + str("{:.6f}".format(aligned)).ljust(20,' ') + str("{:.6f}".format(np.degrees(angle_rad))).ljust(20,' ') + "\n"
 		outalig.write(linealig)
 
 		# Write rbond_info data
@@ -606,12 +621,12 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		rhx, rhy, rhz = rbond_hat
 		list1 = "[" + str(rvx) + "," + str(rvy) + "," + str(rvz) + "]"
 		list2 = "[" + str(rhx) + "," + str(rhy) + "," + str(rhz) + "]"
-		bondline = str(time).ljust(10,' ') +  list1.ljust(60,' ') +  str(mag(rbond_vec)).ljust(30,' ') + list2 + "\n"
+		bondline = str(time).ljust(10,' ') +  list1.ljust(60,' ') +  str(mag(rbond_vec)).ljust(20,' ') + list2 + "\n"
 		outrbond.write(bondline)
 
 	else:
 		# write Efield
-		lineEfield  = str(time).ljust(10,' ') + str("{:.12e}".format(totalEfmag)).ljust(30,' ') + str("{:.12e}".format(totalEfx)).ljust(30,' ') + str("{:.12e}".format(totalEfy)).ljust(30,' ') + str("{:.12e}".format(totalEfz)).ljust(30,' ') + "\n"
+		lineEfield  = str(time).ljust(10,' ') + str("{:.6f}".format(totalEfmag)).ljust(20,' ') + str("{:.6f}".format(totalEfx)).ljust(20,' ') + str("{:.6f}".format(totalEfy)).ljust(20,' ') + str("{:.6f}".format(totalEfz)).ljust(20,' ') + "\n"
 		out.write(lineEfield)
 
 	########################################################
@@ -623,14 +638,15 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		resEfx = np.sum(res_efield_x)
 		resEfy = np.sum(res_efield_y)
 		resEfz = np.sum(res_efield_z)
-		resEf  = np.array([resEfx, resEfy, resEfz])
+		resEf  = np.asarray([resEfx, resEfy, resEfz], dtype=object)
 		resEfmag = mag(resEf)
 		# calculate the projection and alignment for each residue
 		if mode == "bond":
 			resEfproj = projection(resEf,rbond_vec)  # resEf can have a higher magnitude than the total field.
 		else:
 			resEfproj = projection(resEf,totalEf)
-		resEfalignment = alignment(mag(resEfproj),totalEfmag) # resEf can have a higher magnitude than the total field,
+		resEfprojmag = mag(resEfproj)
+		resEfalignment = alignment(resEfprojmag,totalEfmag) # resEf can have a higher magnitude than the total field,
 		                                                      # which means % can be > 100%
 
 		# Update the total dictionary with values of THIS FRAME
@@ -645,42 +661,75 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 ###############################################################################
 # Calculate average Efield vector and its angle to the field vector of each frame (Efield(t)).
 # The ultimate goal here is to create a 3D standard deviation to be plotted with the field vector in pyTUPÃ.
-avgfield   = np.average(list(efield_total.values()), axis=0)
-mag_list   = []
-angle_list = []
+avgfield        = np.average(list(efield_total.values()), axis=0)
+stdfield        = np.std(list(efield_total.values()), axis=0)
+avgfieldmag     = mag(avgfield)
+avgproj         = np.average(list(projection_total.values()), axis=0)
+stdproj         = np.std(list(projection_total.values()), axis=0)
 
-outangle = open(outdir + "Spatial_Deviation.dat", "w")
-outangle.write("#time   Angle(field_frame, avg_field)   Projection(field_frame, avg_field)   Alignment(field_frame, avg_field)\n")
+avgangle_list   = []
+projmag_list    = []
+projalig_list   = []
+
 
 for time,field in efield_total.items():
-	angle = angle_between(field, avgfield)*(180/np.pi)
-	angle_list.append(angle)
-	proj     = projection(field,avgfield)
-	projmag  = mag(proj)
-	fieldmag = mag(field)
-	mag_list.append(fieldmag)
-	alig     = alignment(projmag,fieldmag)
+	#Angle between Efield(t) and average Efield
+	angle     = np.degrees(angle_between(field, avgfield))
+	avgangle_list.append(angle)
+	# Projection between Efield(t) and average Efield
+	proj      = projection(field,avgfield)
+	projmag   = mag(proj)
+	projmag_list.append(projmag)
+	# Alignment between Efield(t) and average Efield
+	projalig     = alignment(projmag,avgfieldmag)
+	projalig_list.append(projalig)
 
-	lineangle  = str(time).ljust(10,' ') + str("{:.12e}".format(angle)).ljust(30,' ') + str("{:.12e}".format(projmag)).ljust(30,' ') + str("{:.12e}".format(alig)).ljust(30,' ') + "\n"
+	lineangle  = str(time).ljust(10,' ') + str("{:.6f}".format(angle)).ljust(20,' ') + str("{:.6f}".format(projmag)).ljust(20,' ') + str("{:.6f}".format(projalig)).ljust(20,' ') + "\n"
 	outangle.write(lineangle)
 
 # write average angle between Efield(t) and the average Efield.
-avgangle   = np.average(angle_list)
-stdevangle = np.std(angle_list)
-outangle.write("#AVG: " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(5,' '))
+avgangle    = np.average(avgangle_list)
+stdevangle  = np.std(avgangle_list)
+avgprojmag  = np.average(projmag_list)
+stdprojmag  = np.std(projmag_list)
+avgprojalig = np.average(projalig_list)
+avgprojalig = np.std(projalig_list)
+
+outangle.write("#---#\n")
+outangle.write("#AVG:   " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(6,' ') + "      " + str("{:.2f}".format(avgprojmag)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdprojmag)).ljust(6,' ') + "   " + str("{:.2f}".format(avgprojalig)).rjust(6,' ') + " +- " + str("{:.2f}".format(avgprojalig)).ljust(6,' '))
 outangle.close()
 
 # write average Efield to the output file
-avgx, avgy, avgz = avgfield
-stdex  = np.std(avgx)
-stdey  = np.std(avgy)
-stdez  = np.std(avgz)
-avgmag = np.average(mag_list)
-stdmag = np.std(mag_list)
+avgx,  avgy,  avgz   = avgfield
+stdex ,stdey, stdez  = stdfield
+avgmag = mag(np.array([avgx,  avgy,  avgz]))
+stdmag = mag(np.array([stdex ,stdey, stdez]))
 
 out.write("#---#\n")
-out.write("#AVG:     " + str("{:.12e}".format(avgmag)).ljust(30,' ') + str("{:.12e}".format(avgx)).ljust(30,' ') + str("{:.12e}".format(avgy)).ljust(30,' ') + str("{:.12e}".format(avgz)).ljust(30,' ') + "\n")
-out.write("#STDEV:   " + str("{:.12e}".format(stdmag)).ljust(30,' ') + str("{:.12e}".format(stdex)).ljust(30,' ') + str("{:.12e}".format(stdey)).ljust(30,' ') + str("{:.12e}".format(stdez)).ljust(30,' ') + "\n")
+out.write("#AVG:     " + str("{:.6f}".format(avgmag)).ljust(20,' ') + str("{:.6f}".format(avgx)).ljust(20,' ') + str("{:.6f}".format(avgy)).ljust(20,' ') + str("{:.6f}".format(avgz)).ljust(20,' ') + "\n")
+out.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdex)).ljust(20,' ') + str("{:.6f}".format(stdey)).ljust(20,' ') + str("{:.6f}".format(stdez)).ljust(20,' ') + "\n")
+
+if mode == "bond":
+	# write average ElecField_proj_onto_bond to the output file
+	avgx,  avgy,  avgz   = avgproj
+	stdex ,stdey, stdez  = stdproj
+	avgmag = mag(np.array([avgx,  avgy,  avgz]))
+	stdmag = mag(np.array([stdex ,stdey, stdez]))
+
+	outproj.write("#---#\n")
+	outproj.write("#AVG:     " + str("{:.6f}".format(avgmag)).ljust(20,' ') + str("{:.6f}".format(avgx)).ljust(20,' ') + str("{:.6f}".format(avgy)).ljust(20,' ') + str("{:.6f}".format(avgz)).ljust(20,' ') + "\n")
+	outproj.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdex)).ljust(20,' ') + str("{:.6f}".format(stdey)).ljust(20,' ') + str("{:.6f}".format(stdez)).ljust(20,' ') + "\n")
+
+
+	# write average alignment and average angle between Efield(t) and Proj(t)
+	avgalign   = np.average(align_list)
+	stdevalign = np.std(align_list)
+	avgangle   = np.average(angle_list)
+	stdevangle = np.std(angle_list)
+
+	outalig.write("#---#\n")
+	outalig.write("#AVG:     " + str("{:.2f}".format(avgalign)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevalign)).ljust(6,' ') + "    " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(6,' '))
+	outalig.close()
 ###############################################################################
 # Calculate the average contribution of each residue to the total field
 for r, comp in dict_res_total.items():
@@ -692,7 +741,7 @@ for r, comp in dict_res_total.items():
 	resEfalig_std = np.std(resEfaligned)
 
 	# write contribution of each residue
-	lineres = str(r).ljust(10,' ') + str("{:.12e}".format(resEfmag_avg)).ljust(30,' ') + str("{:.12e}".format(resEfmag_std)).ljust(30,' ') + str("{:.6f}".format(resEfalig_avg)).ljust(20,' ') + str("{:.6f}".format(resEfalig_std)).ljust(30,' ') + "\n"
+	lineres = str(r).ljust(10,' ') + str("{:.6f}".format(resEfmag_avg)).ljust(20,' ') + str("{:.6f}".format(resEfmag_std)).ljust(20,' ') + str("{:.6f}".format(resEfalig_avg)).ljust(20,' ') + str("{:.6f}".format(resEfalig_std)).ljust(20,' ') + "\n"
 	outres.write(lineres)
 
 ###############################################################################
