@@ -332,33 +332,13 @@ if mode == "bond":
 print("\n########################################################")
 # Creating Universe and making selections
 if top_file != None and traj_file != None:
-	u = mda.Universe(top_file, traj_file)
+	try:
+		u = mda.Universe(top_file, traj_file)
+	except Exception as e:
+		sys.exit("""\n>>> ERROR: Topology or Trajectory not found. Aren't you forgetting something?!\n""")
+
 else:
-	sys.exit("""\n>>> ERROR: Topology or Trajectory files missing. Are you not forgetting something?!\n""")
-
-# If mode == LIST, parse the file of coordinates
-if mode == 'list':
-	loc = open(file_of_coordinates, 'r')
-	list_of_coordinates = []
-	while True:
-		coorline = loc.readline()
-		if not coorline: break
-		if coorline[0] != "#" and coorline[0] != "@":
-			if len(coorline.split()) == 3:
-				try:
-					listcoorX = float(coorline.split()[0])
-					listcoorY = float(coorline.split()[1])
-					listcoorZ = float(coorline.split()[2])
-				except:
-					sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X Y Z). Check your inputs!\n""")
-				tmpcoorlist = [listcoorX, listcoorY, listcoorZ]
-				list_of_coordinates.append(tmpcoorlist)
-			else:
-				sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X Y Z). Check your inputs!\n""")
-
-	# Sanity check: list of coordinates should have the same length as the trajectory
-	if len(list_of_coordinates) != len(u.trajectory):
-		sys.exit("""\n>>> ERROR: File of coordinates and trajectory have different lengths (""" + str(len(list_of_coordinates)) + """ lines and """ + str(len(u.trajectory)) + """ frames)!\n""")
+	sys.exit("""\n>>> ERROR: Topology or Trajectory not found. Aren't you forgetting something?!\n""")
 
 ###############################################################################
 print("\n########################################################")
@@ -412,20 +392,49 @@ elif mode == "coordinate":
 	if remove_self == True:
 		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
 elif mode == "list":
-	probe_selection = list_of_coordinates
 	print("\n>>> Running in LIST mode!")
-	print(">>> Probe XYZ positions = " + str(len(list_of_coordinates)) + """ XYZ coordinates""")
+	# If mode == LIST, parse the file of coordinates
+	loc = open(file_of_coordinates, 'r')
+	probe_selection = []
+	while True:
+		coorline = loc.readline()
+		if not coorline: break
+		if coorline[0] != "#" and coorline[0] != "@":
+			if len(coorline.split()) == 3:
+				try:
+					listcoorX = float(coorline.split()[0])
+					listcoorY = float(coorline.split()[1])
+					listcoorZ = float(coorline.split()[2])
+				except:
+					sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X Y Z). Check your inputs!\n""")
+				tmpcoorlist = [listcoorX, listcoorY, listcoorZ]
+				probe_selection.append(tmpcoorlist)
+			else:
+				sys.exit("""\n>>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X Y Z). Check your inputs!\n""")
+
+	# Sanity check: list of coordinates should have the same length as the trajectory
+	if len(probe_selection) != len(u.trajectory):
+		sys.exit("""\n>>> ERROR: File of coordinates and trajectory have different lengths (""" + str(len(probe_selection)) + """ lines and """ + str(len(u.trajectory)) + """ frames)!\n""")
+
+	print(">>> Probe XYZ positions = " + str(len(probe_selection)) + """ XYZ coordinates""")
 	if remove_self == True:
 		print(">>> Removing self contribution within a radial cutoff of " +  str(remove_cutoff) + " Angstroms\n")
 
 else:
-	sys.exit("\n>>> MODE should be 'bond' or 'atom' or 'coordinate'!")
+	sys.exit("\n>>> MODE should be 'bond', 'atom', 'coordinate' or 'list'!")
 
-# Selecting the atoms that exert the electric field
-elecfield_selection = u.select_atoms(sele_elecfield)
 
 ###############################################################################
-# Sanity check: atoms in probe_selection should NOT be in elecfield_selection
+# Selecting the atoms that exert the electric field
+try:
+	elecfield_selection = u.select_atoms(sele_elecfield)
+except Exception as e:
+	###############################################################################
+	# Sanity check1: environment selection can not be empty.
+	sys.exit("\n>>> ERROR: sele_environment is empty. Check your selection!\n")
+
+###############################################################################
+# Sanity check2: atoms in probe_selection should NOT be in elecfield_selection
 # if tmprefposition == probe_selection.center_of_geometry(). Checking that...
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
@@ -456,6 +465,8 @@ efield_total     = {}
 projection_total = {}
 align_list       = []
 angle_list       = []
+efieldmag_list   = []
+projmag_list     = []
 
 
 for ts in u.trajectory[0: len(u.trajectory):]:
@@ -586,6 +597,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	# Keep the contributions for each frame so we can use later
 	efield_total[time] = [totalEfx, totalEfy, totalEfz]
+	# Keep the magnitudes so we can use later
+	efieldmag_list.append(totalEfmag)
 
 	########################################################
 	# Write information exclusive to BOND mode
@@ -598,9 +611,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 		# Calculate projection direction (either 1 or -1)
 		angle_rad = angle_between(totalEf,rbond_vec)
 		proj_direction = np.cos(angle_rad)/abs(np.cos(angle_rad))
-		# Update the Efield sign depending on the direction (multiplying by 1 or -1)
-		totalEfmag = totalEfmag*proj_direction
+		# Update the Efield projection sign depending on its direction (multiplying by 1 or -1)
+		#totalEfmag = totalEfmag*proj_direction
 		Efprojectionmag = mag(Efprojection)*proj_direction
+		# Keep the magnitudes so we can use later
+		projmag_list.append(Efprojectionmag)
 
 		# write Efield
 		lineEfield  = str(time).ljust(10,' ') + str("{:.6f}".format(totalEfmag)).ljust(20,' ') + str("{:.6f}".format(totalEfx)).ljust(20,' ') + str("{:.6f}".format(totalEfy)).ljust(20,' ') + str("{:.6f}".format(totalEfz)).ljust(20,' ') + "\n"
@@ -668,8 +683,8 @@ avgproj         = np.average(list(projection_total.values()), axis=0)
 stdproj         = np.std(list(projection_total.values()), axis=0)
 
 avgangle_list   = []
-projmag_list    = []
-projalig_list   = []
+avgprojmag_list    = []
+avgprojalig_list   = []
 
 
 for time,field in efield_total.items():
@@ -677,23 +692,23 @@ for time,field in efield_total.items():
 	angle     = np.degrees(angle_between(field, avgfield))
 	avgangle_list.append(angle)
 	# Projection between Efield(t) and average Efield
-	proj      = projection(field,avgfield)
-	projmag   = mag(proj)
-	projmag_list.append(projmag)
+	tmp_proj      = projection(field,avgfield)
+	tmp_projmag   = mag(proj)
+	avgprojmag_list.append(projmag)
 	# Alignment between Efield(t) and average Efield
-	projalig     = alignment(projmag,avgfieldmag)
-	projalig_list.append(projalig)
+	tmp_projalig     = alignment(projmag,avgfieldmag)
+	avgprojalig_list.append(projalig)
 
-	lineangle  = str(time).ljust(10,' ') + str("{:.6f}".format(angle)).ljust(20,' ') + str("{:.6f}".format(projmag)).ljust(20,' ') + str("{:.6f}".format(projalig)).ljust(20,' ') + "\n"
+	lineangle  = str(time).ljust(10,' ') + str("{:.6f}".format(angle)).ljust(20,' ') + str("{:.6f}".format(tmp_projmag)).ljust(20,' ') + str("{:.6f}".format(tmp_projalig)).ljust(20,' ') + "\n"
 	outangle.write(lineangle)
 
 # write average angle between Efield(t) and the average Efield.
 avgangle    = np.average(avgangle_list)
 stdevangle  = np.std(avgangle_list)
-avgprojmag  = np.average(projmag_list)
-stdprojmag  = np.std(projmag_list)
-avgprojalig = np.average(projalig_list)
-avgprojalig = np.std(projalig_list)
+avgprojmag  = np.average(avgprojmag_list)
+stdprojmag  = np.std(avgprojmag_list)
+avgprojalig = np.average(avgprojalig_list)
+avgprojalig = np.std(avgprojalig_list)
 
 outangle.write("#---#\n")
 outangle.write("#AVG:   " + str("{:.2f}".format(avgangle)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdevangle)).ljust(6,' ') + "      " + str("{:.2f}".format(avgprojmag)).rjust(6,' ') + " +- " + str("{:.2f}".format(stdprojmag)).ljust(6,' ') + "   " + str("{:.2f}".format(avgprojalig)).rjust(6,' ') + " +- " + str("{:.2f}".format(avgprojalig)).ljust(6,' '))
@@ -701,24 +716,24 @@ outangle.close()
 
 # write average Efield to the output file
 avgx,  avgy,  avgz   = avgfield
-stdex ,stdey, stdez  = stdfield
-avgmag = mag(np.array([avgx,  avgy,  avgz]))
-stdmag = mag(np.array([stdex ,stdey, stdez]))
+stdx , stdy,  stdz   = stdfield
+avgmag = np.average(efieldmag_list)
+stdmag = np.std(efieldmag_list)
 
 out.write("#---#\n")
 out.write("#AVG:     " + str("{:.6f}".format(avgmag)).ljust(20,' ') + str("{:.6f}".format(avgx)).ljust(20,' ') + str("{:.6f}".format(avgy)).ljust(20,' ') + str("{:.6f}".format(avgz)).ljust(20,' ') + "\n")
-out.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdex)).ljust(20,' ') + str("{:.6f}".format(stdey)).ljust(20,' ') + str("{:.6f}".format(stdez)).ljust(20,' ') + "\n")
+out.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdx)).ljust(20,' ') + str("{:.6f}".format(stdy)).ljust(20,' ') + str("{:.6f}".format(stdz)).ljust(20,' ') + "\n")
 
 if mode == "bond":
 	# write average ElecField_proj_onto_bond to the output file
-	avgx,  avgy,  avgz   = avgproj
-	stdex ,stdey, stdez  = stdproj
-	avgmag = mag(np.array([avgx,  avgy,  avgz]))
-	stdmag = mag(np.array([stdex ,stdey, stdez]))
+	avgx, avgy, avgz   = avgproj
+	stdx, stdy, stdz   = stdproj
+	avgmag = np.average(projmag_list)
+	stdmag = np.std(projmag_list)
 
 	outproj.write("#---#\n")
 	outproj.write("#AVG:     " + str("{:.6f}".format(avgmag)).ljust(20,' ') + str("{:.6f}".format(avgx)).ljust(20,' ') + str("{:.6f}".format(avgy)).ljust(20,' ') + str("{:.6f}".format(avgz)).ljust(20,' ') + "\n")
-	outproj.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdex)).ljust(20,' ') + str("{:.6f}".format(stdey)).ljust(20,' ') + str("{:.6f}".format(stdez)).ljust(20,' ') + "\n")
+	outproj.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdx)).ljust(20,' ') + str("{:.6f}".format(stdy)).ljust(20,' ') + str("{:.6f}".format(stdz)).ljust(20,' ') + "\n")
 
 
 	# write average alignment and average angle between Efield(t) and Proj(t)
