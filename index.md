@@ -86,7 +86,7 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 **IMPORTANT**:
 * All selections must be compatible with MDAnalysis syntax.
 * TUPÃ was designed to work with ```ORTHORHOMBIC``` box types. We are working to support for rhombic dodecahedron and truncated octahedron boxes.
-* Trajectories MUST be re-imaged before running TUPÃ. *Make sure your probe is well centered in the box*.
+* Trajectories MUST be re-imaged before running TUPÃ. *Make sure your probe is centered in the box and does not rotate*.
 * Molecules in ```solvent_selection``` beyond the PBC are re-imaged. This is achieved by applying the ```around``` selection feature in MDAnalysis and properly shifting the coordinates.
 * If using COORDINATE mode, be mindful that our code does not account for rotations and translations of coordinates. Be mindful of the coordinate selection.
 
