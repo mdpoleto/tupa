@@ -175,7 +175,10 @@ except:
 # Being verbose about parameters chosen
 print("########################################################")
 print(">>> Parameters used to run Tupã:")
-
+print()
+print('Topology file   = ' + top_file)
+print('Trajectory file = ' + traj_file)
+print()
 print('[Environment Selection]')
 print('sele_environment   = {}'.format(sele_elecfield))
 print()
@@ -693,11 +696,11 @@ for time,field in efield_total.items():
 	avgangle_list.append(angle)
 	# Projection between Efield(t) and average Efield
 	tmp_proj      = projection(field,avgfield)
-	tmp_projmag   = mag(proj)
-	avgprojmag_list.append(projmag)
+	tmp_projmag   = mag(tmp_proj)
+	avgprojmag_list.append(tmp_projmag)
 	# Alignment between Efield(t) and average Efield
-	tmp_projalig     = alignment(projmag,avgfieldmag)
-	avgprojalig_list.append(projalig)
+	tmp_projalig     = alignment(tmp_projmag,avgfieldmag)
+	avgprojalig_list.append(tmp_projalig)
 
 	lineangle  = str(time).ljust(10,' ') + str("{:.6f}".format(angle)).ljust(20,' ') + str("{:.6f}".format(tmp_projmag)).ljust(20,' ') + str("{:.6f}".format(tmp_projalig)).ljust(20,' ') + "\n"
 	outangle.write(lineangle)
