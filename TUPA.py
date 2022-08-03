@@ -23,9 +23,9 @@ ap = argparse.ArgumentParser(description=tupa_help.header,
 ap._optionals.title = 'Options'
 ap.add_argument('-h', '--help', action="store_true", help='Show this message and exit')
 ap.add_argument('-top', type=str, default=None, required=False, metavar='',
-                help='Topology file (.psf)')
+                help='Topology file (.psf, .tpr, .prmtop, etc.)')
 ap.add_argument('-traj', type=str, default=None, required=False, metavar='',
-                help='Trajectory file (.dcd)')
+                help='Trajectory file (.dcd, .xtc, etc.)')
 ap.add_argument('-outdir', type=str, default="Tupã_results", required=False, metavar='',
                 help='Output folder in which results will be written (default: Tupã_results/)')
 ap.add_argument('-config', type=str, default=None, required=False, metavar='',
@@ -176,11 +176,11 @@ except:
 print("########################################################")
 print(">>> Parameters used to run Tupã:")
 print()
-print('Topology file   = ' + top_file)
-print('Trajectory file = ' + traj_file)
+print('Topology file       = ' + top_file)
+print('Trajectory file     = ' + traj_file)
 print()
 print('[Environment Selection]')
-print('sele_environment   = {}'.format(sele_elecfield))
+print('sele_environment    = {}'.format(sele_elecfield))
 print()
 print("[Probe Selection]")
 print('mode                = {}'.format(mode))
@@ -194,22 +194,22 @@ elif mode == "coordinate":
 elif mode == "list":
 	print('file_of_coordinates = {}'.format(file_of_coordinates))
 	if remove_self == True:
-		print('remove_self        = {}'.format(remove_self))
-		print('remove_cutoff      = {}'.format(remove_cutoff))
+		print('remove_self         = {}'.format(remove_self))
+		print('remove_cutoff       = {}'.format(remove_cutoff))
 print()
 print("[Solvent]")
-print('include_solvent    = {}'.format(include_solvent))
+print('include_solvent     = {}'.format(include_solvent))
 if include_solvent == True:
-	print('solvent_selection  = {}'.format(solvent_selection))
-	print('solvent_cutoff     = {}'.format(solvent_cutoff))
+	print('solvent_selection   = {}'.format(solvent_selection))
+	print('solvent_cutoff      = {}'.format(solvent_cutoff))
 print()
 print("[Time]")
-print('dt                 = {}'.format(dt))
+print('dt                  = {}'.format(dt))
 print()
 print("[Box Info]")
-print('redefine_box       = {}'.format(redefine_box))
+print('redefine_box        = {}'.format(redefine_box))
 if redefine_box == True:
-	print('boxdimensions      = {}'.format(boxdimensions))
+	print('boxdimensions       = {}'.format(boxdimensions))
 
 ###############################################################################
 def mag(vector):
@@ -374,7 +374,13 @@ else:
 ###############################################################################
 # This is us being very verbose so people actually know what is happening
 if mode == "atom":
-	probe_selection = u.select_atoms(selatom)
+	try:
+		probe_selection = u.select_atoms(selatom)
+	except Exception as e:
+		###############################################################################
+		# Sanity check1: environment selection can not be empty.
+		sys.exit("\n>>> ERROR: PROBE selection (from selatom) is empty. Check your selection!\n")
+
 	if len(probe_selection) > 1:
 		print("\n>>> Running in ATOM mode!")
 		print(">>> Probe atoms (using center of geometry) = "+ str(probe_selection.atoms) + "\n")
@@ -382,8 +388,19 @@ if mode == "atom":
 		print("\n>>> Running in ATOM mode!")
 		print(">>> Probe atom = "+ str(probe_selection.atoms[0].name) +"-"+ str(probe_selection.resnames[0]) + str(probe_selection.resnums[0]) + "\n")
 elif mode == "bond":
-	bond1 = u.select_atoms(selbond1)
-	bond2 = u.select_atoms(selbond2)
+	try:
+		bond1 = u.select_atoms(selbond1)
+	except Exception as e:
+		###############################################################################
+		# Sanity check1: PROBE selection can not be empty.
+		sys.exit("\n>>> ERROR: PROBE selection (from selbon1) is empty. Check your selection!\n")
+	try:
+		bond2 = u.select_atoms(selbond2)
+	except Exception as e:
+		###############################################################################
+		# Sanity check1: PROBE selection can not be empty.
+		sys.exit("\n>>> ERROR: PROBE selection (from selbon2) is empty. Check your selection!\n")
+
 	probe_selection = bond1 + bond2
 	print("\n>>> Running in BOND mode!")
 	print(">>> Probe atoms = " + str(probe_selection.atoms))
@@ -434,7 +451,7 @@ try:
 except Exception as e:
 	###############################################################################
 	# Sanity check1: environment selection can not be empty.
-	sys.exit("\n>>> ERROR: sele_environment is empty. Check your selection!\n")
+	sys.exit("\n>>> ERROR: ENVIRONMENT selection (from sele_environment) is empty. Check your selection!\n")
 
 ###############################################################################
 # Sanity check2: atoms in probe_selection should NOT be in elecfield_selection
@@ -682,8 +699,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 avgfield        = np.average(list(efield_total.values()), axis=0)
 stdfield        = np.std(list(efield_total.values()), axis=0)
 avgfieldmag     = mag(avgfield)
-avgproj         = np.average(list(projection_total.values()), axis=0)
-stdproj         = np.std(list(projection_total.values()), axis=0)
 
 avgangle_list   = []
 avgprojmag_list    = []
@@ -728,6 +743,8 @@ out.write("#AVG:     " + str("{:.6f}".format(avgmag)).ljust(20,' ') + str("{:.6f
 out.write("#STDEV:   " + str("{:.6f}".format(stdmag)).ljust(20,' ') + str("{:.6f}".format(stdx)).ljust(20,' ') + str("{:.6f}".format(stdy)).ljust(20,' ') + str("{:.6f}".format(stdz)).ljust(20,' ') + "\n")
 
 if mode == "bond":
+	avgproj         = np.average(list(projection_total.values()), axis=0)
+	stdproj         = np.std(list(projection_total.values()), axis=0)
 	# write average ElecField_proj_onto_bond to the output file
 	avgx, avgy, avgz   = avgproj
 	stdx, stdy, stdz   = stdproj
