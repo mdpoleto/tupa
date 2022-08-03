@@ -18,7 +18,7 @@ import tupa_help
 # Parse user input and options
 ap = argparse.ArgumentParser(description=tupa_help.header,
                              formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="python tupa.py [options]",
+                             usage="",
                              add_help=False)
 ap._optionals.title = 'Options'
 ap.add_argument('-h', '--help', action="store_true", help='Show this message and exit')
@@ -30,18 +30,18 @@ ap.add_argument('-outdir', type=str, default="Tupã_results", required=False, me
                 help='Output folder in which results will be written (default: Tupã_results/)')
 ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
-ap.add_argument('-template', type=str, default=None, required=False, metavar='',
-                help='Create a template for input configuration file (default: config_sample.dat)')
+ap.add_argument('-template', type=str, default=None, required=False, nargs="?", metavar='',
+                help='Create a template for input configuration file (default: config_template.dat)')
 ap.add_argument('-dumptime', type=int, default=None, required=False, metavar='', nargs='+',
                 help='Choose times (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
-print(tupa_help.header)
+#print(tupa_help.header)
 
 
 if cmd.help is True:
-	#ap.print_help()
+	ap.print_help()
 	print(tupa_help.help)
 	sys.exit()
 else:
@@ -51,7 +51,10 @@ top_file      = cmd.top
 traj_file     = cmd.traj
 outdir        = cmd.outdir
 configinput   = cmd.config
-template      = cmd.template
+if cmd.template == None:
+	template = "config_template.dat"
+else:
+	template      = cmd.template
 if cmd.dumptime == None:
 	dumptime = []
 else:
@@ -338,7 +341,7 @@ if top_file != None and traj_file != None:
 	try:
 		u = mda.Universe(top_file, traj_file)
 	except Exception as e:
-		sys.exit("""\n>>> ERROR: Topology or Trajectory not found. Aren't you forgetting something?!\n""")
+		sys.exit("""\n>>> ERROR: Topology or Trajectory could not be loaded. Check your inputs!\n""")
 
 else:
 	sys.exit("""\n>>> ERROR: Topology or Trajectory not found. Aren't you forgetting something?!\n""")

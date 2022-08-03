@@ -23,16 +23,16 @@ header = """
 
 template_content = """[Environment Selection]
 # The atoms from which we calculate the electric field
-sele_environment    = segid PROA
+sele_environment    = resid 1-200
 
 
 [Probe Selection]
 # Provide the probe selection for the MODE of you choice
 # e.g. if bond is used, then selbond1 and selbond2 must be defined.
 mode                = ATOM    # ATOM or BOND or COORDINATE or LIST
-selatom             = segid PROA and (resid 160 and name OG)
-selbond1            = segid PROA and (resid 160 and name OG)
-selbond2            = segid LIG and name C1
+selatom             = resname LIG and name C5
+selbond1            = resname LIG and name C5
+selbond2            = resname LIG and name C1
 probecoordinate     = [0,0,0]
 file_of_coordinates = /path/to/file/of/list/of/probe/coordinates
 
@@ -43,8 +43,8 @@ remove_cutoff       = 1       # in Angstrom
 
 [Solvent]
 include_solvent     = True    # or False
-solvent_cutoff      = 10      # in Angstrom
-solvent_selection   = segid TIP3
+solvent_cutoff      = 15      # in Angstrom
+solvent_selection   = resname TIP3 or resname CL
 
 [Time]
 dt                  = 10      # Frequency of frames written in your trajectory (in picosecond)
