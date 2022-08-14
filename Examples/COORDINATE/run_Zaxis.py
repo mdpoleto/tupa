@@ -62,7 +62,7 @@ for i in range(26,73):
 	make_config_file("config.conf", i)
 
 	if not os.path.exists("Z_" + i):
-		os.system("python ~/Dropbox/raijin/raijin/raijin.py -top 3ouf_c36.equil.psf -traj 3ouf_c36.traj.dcd -conf config.conf -outdir Z_" + i)
+		os.system("TUPA.py -top 3ouf_c36.equil.psf -traj 3ouf_c36.traj.dcd -conf config.conf -outdir Z_" + i)
 ######
 
 ######

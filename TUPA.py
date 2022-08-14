@@ -31,14 +31,13 @@ ap.add_argument('-outdir', type=str, default="Tupã_results", required=False, me
 ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
 ap.add_argument('-template', type=str, default=None, required=False, nargs="?", metavar='',
-                help='Create a template for input configuration file (default: config_template.dat)')
+                help='Create a template for input configuration file')
 ap.add_argument('-dumptime', type=int, default=None, required=False, metavar='', nargs='+',
                 help='Choose times (in ps) to dump the coordinates from.')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
 #print(tupa_help.header)
-
 
 if cmd.help is True:
 	ap.print_help()
@@ -47,15 +46,20 @@ if cmd.help is True:
 else:
 	pass
 
+if cmd.template is not None:
+	with open(cmd.template, 'w') as configtemplate:
+		configtemplate.write(tupa_help.template_content)
+	print("\n>>> Configuration template file (" + str(cmd.template) + ") written.\n>>> Exiting...\n")
+	sys.exit()
+else:
+	pass
+
+
 top_file      = cmd.top
 traj_file     = cmd.traj
 outdir        = cmd.outdir
 configinput   = cmd.config
-if cmd.template == None:
-	template = "config_template.dat"
-else:
-	template      = cmd.template
-if cmd.dumptime == None:
+if cmd.dumptime is None:
 	dumptime = []
 else:
 	dumptime      = cmd.dumptime
@@ -63,11 +67,6 @@ else:
 # Stablishing default config values
 config = cp.ConfigParser(allow_no_value=True, inline_comment_prefixes="#")
 
-if template != None:
-	with open(template, 'w') as configtemplate:
-		configtemplate.write(tupa_help.template_content)
-	print("\n>>> Configuration template file (" + str(template) + ") written.\n>>> Exiting...\n")
-	sys.exit()
 ###############################################################################
 # Reading configuration file and assuming absences
 if configinput == None:
@@ -371,6 +370,8 @@ if u.dimensions is not None:
 	else:
 		sys.exit("""\n>>> WARNING: Your box does not seem to be orthorhombic. We are currently working to support non-rectangular boxes.\n""")
 		always_redefine_box_flag = False
+elif u.dimensions is None and redefine_box is True:
+	always_redefine_box_flag = True
 else:
 	sys.exit("""\n>>> ERROR: Your trajectory does not contain information regarding box size. Provide them in the configuration file!\n""")
 
