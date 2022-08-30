@@ -23,7 +23,7 @@ header = """
 
 template_content = """[Environment Selection]
 # The atoms from which we calculate the electric field
-sele_environment    = resid 1-200
+sele_environment    = resid 1:200
 
 
 [Probe Selection]

@@ -379,7 +379,7 @@ else:
 # This is us being very verbose so people actually know what is happening
 if mode == "atom":
 	try:
-		probe_selection = u.select_atoms(selatom)
+		probe_selection = u.select_atoms(selatom, updating=True)
 	except Exception as e:
 		###############################################################################
 		# Sanity check1: environment selection can not be empty.
@@ -393,17 +393,17 @@ if mode == "atom":
 		print(">>> Probe atom = "+ str(probe_selection.atoms[0].name) +"-"+ str(probe_selection.resnames[0]) + str(probe_selection.resnums[0]) + "\n")
 elif mode == "bond":
 	try:
-		bond1 = u.select_atoms(selbond1)
+		bond1 = u.select_atoms(selbond1, updating=True)
 	except Exception as e:
 		###############################################################################
 		# Sanity check1: PROBE selection can not be empty.
-		sys.exit("\n>>> ERROR: PROBE selection (from selbon1) is empty. Check your selection!\n")
+		sys.exit("\n>>> ERROR: PROBE selection (from selbond1) is empty. Check your selection!\n")
 	try:
-		bond2 = u.select_atoms(selbond2)
+		bond2 = u.select_atoms(selbond2, updating=True)
 	except Exception as e:
 		###############################################################################
 		# Sanity check1: PROBE selection can not be empty.
-		sys.exit("\n>>> ERROR: PROBE selection (from selbon2) is empty. Check your selection!\n")
+		sys.exit("\n>>> ERROR: PROBE selection (from selbond2) is empty. Check your selection!\n")
 
 	probe_selection = bond1 + bond2
 	print("\n>>> Running in BOND mode!")
@@ -502,6 +502,11 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 	########################################################
 	# Update environment selections and probe position
+
+	if len(probe_selection) == 0:
+		sys.exit("\n>>> ERROR: PROBE selection is empty! Check your selection!\n")
+
+
 	if mode == "atom":
 		if len(probe_selection) > 1:
 			refposition = probe_selection.center_of_geometry()
