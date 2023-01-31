@@ -463,7 +463,7 @@ except Exception as e:
 if mode == "atom" or mode == "bond":
 	for atom in probe_selection.atoms:
 		if atom in elecfield_selection.atoms:
-			print(">>> WARNING: Probe atom(s) within Environment selection (" + str(atom) + ")! Make sure you know what you are doing! Continuing...\n")
+			print(">>> WARNING: Probe atom (" + str(atom) + ") included in Environment selection! Moving on...!\n")
 
 ###############################################################################
 # Verbose output for solvent inclusion in calculation. Selection is done within the trajectory loop
