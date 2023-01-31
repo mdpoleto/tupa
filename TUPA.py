@@ -26,7 +26,7 @@ ap.add_argument('-top', type=str, default=None, required=False, metavar='',
                 help='Topology file (.psf, .tpr, .prmtop, etc.)')
 ap.add_argument('-traj', type=str, default=None, required=False, metavar='',
                 help='Trajectory file (.dcd, .xtc, etc.)')
-ap.add_argument('-outdir', type=str, default="Tupã_results", required=False, metavar='',
+ap.add_argument('-outdir', type=str, default="Tupã_results/", required=False, metavar='',
                 help='Output folder in which results will be written (default: Tupã_results/)')
 ap.add_argument('-config', type=str, default=None, required=False, metavar='',
                 help='Input configuration file (default: config.dat)')
@@ -176,7 +176,7 @@ except:
 ###############################################################################
 # Being verbose about parameters chosen
 print("########################################################")
-print(">>> Parameters used to run Tupã:")
+print(">>> Parameters used to run TUPÃ:")
 print()
 print('Topology file       = ' + top_file)
 print('Trajectory file     = ' + traj_file)
@@ -186,32 +186,53 @@ print('sele_environment    = {}'.format(sele_elecfield))
 print()
 print("[Probe Selection]")
 print('mode                = {}'.format(mode))
+probestr = ""
+
 if mode == "atom":
-	print('selatom             = {}'.format(selatom))
+	str1 = 'selatom             = {}'.format(selatom)
+	print(str1)
+	probestr += str1
 elif mode == "bond":
-	print('selbond1            = {}'.format(selbond1))
-	print('selbond2            = {}'.format(selbond2))
+	str1 = 'selbond1            = {}'.format(selbond1)
+	str2 = 'selbond2            = {}'.format(selbond2)
+	print(str1)
+	print(str2)
+	probestr += str1 +'\n'+str2
 elif mode == "coordinate":
-	print('probecoordinate     = {}'.format(probecoordinate))
+	str1 = 'probecoordinate     = {}'.format(probecoordinate)
+	print(str1)
+	probestr += str1
 elif mode == "list":
-	print('file_of_coordinates = {}'.format(file_of_coordinates))
+	str1 = 'file_of_coordinates = {}'.format(file_of_coordinates)
+	print(str1)
+	probestr += str1+'\n'
 	if remove_self == True:
-		print('remove_self         = {}'.format(remove_self))
-		print('remove_cutoff       = {}'.format(remove_cutoff))
+		str2 = 'remove_self         = {}'.format(remove_self)
+		str3 = 'remove_cutoff       = {}'.format(remove_cutoff)
+		print(str2)
+		print(str3)
+		probestr += str2 +'\n' + str3
 print()
 print("[Solvent]")
 print('include_solvent     = {}'.format(include_solvent))
+solvstr = ""
 if include_solvent == True:
-	print('solvent_selection   = {}'.format(solvent_selection))
-	print('solvent_cutoff      = {}'.format(solvent_cutoff))
+	str1 = 'solvent_selection   = {}'.format(solvent_selection)
+	str2 = 'solvent_cutoff      = {}'.format(solvent_cutoff)
+	print(str1)
+	print(str2)
+	solvstr += str1 +"\n"+str2
 print()
 print("[Time]")
 print('dt                  = {}'.format(dt))
 print()
 print("[Box Info]")
 print('redefine_box        = {}'.format(redefine_box))
+boxstr = ""
 if redefine_box == True:
-	print('boxdimensions       = {}'.format(boxdimensions))
+	str1 = 'boxdimensions       = {}'.format(boxdimensions)
+	print(str1)
+	boxstr += str1
 
 ###############################################################################
 def mag(vector):
@@ -297,40 +318,79 @@ def pack_around(atom_group, center, boxinfo):
 	return tmp_group
 ###############################################################################
 # Opening output files
-outdir = outdir + "/"
-if os.path.exists(outdir):
-	pass
-else:
+
+if not os.path.exists(outdir):
 	os.system("mkdir " + outdir)
 
-out = open(outdir + "ElecField.dat",'w')
+# Writing run info into a file
+out = open(os.path.join(outdir,"run_info.log"),'w')
+runinfo = """########################################################
+>>> Parameters used to run TUPÃ:
+
+Topology file       = {top}
+Trajectory file     = {traj}
+
+[Environment Selection]
+sele_environment    = {environment}
+
+[Probe Selection]
+mode                = {mode}
+{probestr}
+
+[Solvent]
+include_solvent     = {include_solv}
+{solvstr}
+
+[Time]
+dt                  = {dt}
+
+[Box Info]
+redefine_box        = {box}
+{boxstr}
+########################################################
+""".format(top = top_file,
+           traj = traj_file,
+           environment = sele_elecfield,
+           mode=mode,
+           probestr=probestr,
+           include_solv=include_solvent,
+           solvstr=solvstr,
+           dt=dt,
+           box=redefine_box,
+           boxstr=boxstr)
+
+out.write(runinfo)
+out.close()
+
+
+out = open(os.path.join(outdir,"ElecField.dat"),'w')
 out.write("""@    title "Electric Field"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
 out.write("#time      Magnitude          Efield_X            Efield_Y            Efield_Z\n")
 out.write("@type xy\n")
 
-outres = open(outdir + "ElecField_per_residue.dat",'w')
+outres = open(os.path.join(outdir,"ElecField_per_residue.dat"),'w')
 outres.write("""@    title "Magnitude of Electric Field"\n@    xaxis  label "Residues"\n@    yaxis  label "MV/cm"\n""")
 outres.write("#time     Efield_per_residue  Std.Deviation       Alignment_percent   Alignment_Stdev\n")
 outres.write("@type xydy\n")
 
-outangle = open(outdir + "Spatial_Deviation.dat", "w")
+outangle = open(os.path.join(outdir,"Spatial_Deviation.dat"), "w")
 outangle.write("#time   Angle(Efield(t), avg_field)   Projection(Efield(t), avg_field)   Alignment(Efield(t), avg_field)\n")
 
-outprobe = open(outdir + "probe_info.dat", "w")
+outprobe = open(os.path.join(outdir,"probe_info.dat"), "w")
 outprobe.write("#time     probe_coordinates\n")
 
 if mode == "bond":
-	outproj = open(outdir + "ElecField_proj_onto_bond.dat",'w')
+	outproj = open(os.path.join(outdir,"ElecField_proj_onto_bond.dat"),'w')
 	outproj.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "MV/cm"\n""")
 	outproj.write("#time      Magnitude          Efield_X            Efield_Y            Efield_Z          Direction\n")
 	outproj.write("@type xy\n")
 
-	outalig = open(outdir + "ElecField_alignment.dat",'w')
+	outalig = open(os.path.join(outdir,"ElecField_alignment.dat"),'w')
 	outalig.write("""@    title "Efield_Projection"\n@    xaxis  label "Time (ps)"\n@    yaxis  label "Alignment_percentage"\n""")
 	outalig.write("#time     Alignment_percent   Angle\n")
 	outalig.write("@type xy\n")
 
-	outrbond = open(outdir + "bond_axis_info.dat", "w")
+	outrbond = open(os.path.join(outdir,"bond_axis_info.dat"), "w")
 	outrbond.write("#time     rbondvec_in_meters                                          rbond_magnitude               rbond_unit_vector\n")
 
 ###############################################################################
@@ -561,7 +621,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 	# Dumping a specific frame if asked
 	dumptime = np.array(dumptime, dtype=float)
 	if float(time) in dumptime:
-		print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + outdir + "frame_" + time + "ps.pdb!")
+		framefile = os.path.join(outdir,"frame_" + time + "ps.pdb!")
+		print("   >>> Dumping frame (Time = " + str(time) + " ps)! Check " + framefile)
 		dump_sel = u.select_atoms("all")
 		dump_sel.write(outdir + "frame_" + time + "ps.pdb")
 		dump_sel2 = enviroment_selection.select_atoms("all")

@@ -14,7 +14,7 @@ CREATION
 	This script was based on 'cgo_arrow.py' by Thomas Holder.
 DESCRIPTION
 	Allows the user to create arrows representing:
-	1) bond dipoles between 2 selected atoms (atom1 -> atom2)
+	1) vector between 2 selected atoms (atom1 -> atom2)
 	2) Electric field vectors midway between 2 picked atoms ([atom1+atom2]/2)
 	3) Electric field vector at a given atom or coordinate
 ARGUMENTS
@@ -86,7 +86,24 @@ def get_coord(v):
 
 	return position
 
+def help_tupa():
+	help = """
+	Welcome to pyTUPÃmol!
+	This plugin has 3 functions:
 
+	- draw_bond_axis <atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, hradius=0.2, color='gray60', name=''>
+
+	- efield_bond <bond_atom1='pk1', bond_atom2='pk2', efield=[EX,EY,EZ], scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', stdev=0.0, efield_name='', stdev_name=''>
+
+	- efield_point <point='pk1', efield=[EX,EY,EZ], scale=1.0, radius=0.1, hlength=0.3, hradius=None, color='blue red', stdev=0.0, efield_name='', stdev_name=''>
+
+	Ex1: draw_bond_axis resid 10 and resname SER and name OG, resid 1877 and resname HOH and name O
+	Ex2: efield_bond resname LIG and name C, resname LIG and name O, efield=[10, 20, 15], scale=0.01, color=cyan, efield_name=efield_ligand
+	Ex3: efield_point [0,0,10], efield=[10, 20, 15], scale=0.01, color=cyan, efield_name=efield_z10
+	"""
+	print(help)
+
+##############################################
 def draw_bond_axis(atom1='pk1', atom2='pk2', radius=0.1, gap=0.5, hlength=0.4, hradius=0.2, color='gray60', name=''):
 	radius, gap = float(radius), float(gap)
 	hlength, hradius = float(hlength), float(hradius)
@@ -273,6 +290,7 @@ def efield_point(point='pk1', efield=None, scale=1.0, radius=0.1, hlength=0.3, h
 		cmd.load_cgo(obj2, stdev_name)
 ###################################################
 
+cmd.extend('help_tupa', help_tupa)
 cmd.extend('draw_bond_axis', draw_bond_axis)
 cmd.extend('efield_bond', efield_bond)
 cmd.extend('efield_point', efield_point)
