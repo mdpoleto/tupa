@@ -120,7 +120,7 @@ efield_bond resname LIG and name O1, resname LIG and name C1, efield=[-94.2675, 
 draw_bond_axis resname LIG and name O1, resname LIG and name C1, gap=0.5, color="gray60", name="axis_OG-C1"
 ```
 
-To install **pyTUPÃ** plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab. Choose the ```pyTUPÃ.py``` file and click Install.
+To install ```pyTUPÃmol``` plugin in PyMOL, click on Plugin > Plugin Manager and then "Install New Plugin" tab. Choose the ```pyTUPÃmol.py``` file and click Install.
 
 --------------------------
 ## Citing TUPÃ

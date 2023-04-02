@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.5'
+VERSION = 'v1.5.0'
 DESCRIPTION = 'Electric field analyses for molecular simulations.'
 
 # Setting up
@@ -13,13 +13,7 @@ setup(
     description=DESCRIPTION,
     packages=find_packages(),
 
-    # other arguments...
-    #conda_channels=['conda-forge', 'schrodinger'],
-    #conda_dependencies=[
-    #    'pymol-bundle',
-    #],
-
-    install_requires=['MDAnalysis>=2.2.0','numpy', 'configparser', 'argparse', 'warnings'],
+    install_requires=['MDAnalysis>=2.2.0','numpy>1.2', 'configparser', 'argparse'],
     extras_require = {},
     keywords=['python', 'molecular dynamics', 'electric fields', 'MD trajectory analysis'],
     url="https://github.com/mdpoleto/tupa/",
