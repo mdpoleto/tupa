@@ -7,9 +7,8 @@ DESCRIPTION = 'Electric field analyses for molecular simulations.'
 setup(
     name="tupa",
     version=VERSION,
-    author="Marcelo D. Poleto, Justin A Lemkul",
+    author="Marcelo D. Poleto, Justin A. Lemkul",
     author_email="Marcelo D. Poleto <mdpoleto@vt.edu>",
-    #contributors=CONTRIBUTORS,
     description=DESCRIPTION,
     packages=find_packages(),
 
