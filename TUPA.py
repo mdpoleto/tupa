@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #Marcelo D. Poleto
-#FEB 2022
+#Apr 2023
 
 import sys, os, argparse, timeit
 import MDAnalysis as mda

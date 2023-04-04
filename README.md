@@ -12,23 +12,25 @@ field vectors together with molecules.
 
 Required packages:
 
-* MDAnalysis >= 2.0.0
+* MDAnalysis >= 2.2.0
 * Python     >= 3.x
 * Numpy      >= 1.2.x
 
 ------------------------------
 ## Installation instructions
 
-First, make sure you have all required packages installed. For MDAnalysis installation procedures, [click here](https://www.mdanalysis.org/pages/installation_quick_start/).
 
-After, just clone this repository into a folder of your choice:
+1) Clone this repository into a folder of your choice:
 ```
 git clone https://github.com/mdpoleto/tupa.git
 ```
 
-To easily use **TUPÃ**, export the pathway to the executable *TUPA.py* in your ~/.bashrc:
+2) Inside the cloned folder, use conda and the ```tupa.yml``` file to create a conda
+environment containing the necessary dependencies.
+
+3) To easily use **TUPÃ**, make a symlink of the executable *TUPA.py*:
 ```
-export PATH="/path/to/the/cloned/repository/":$PATH
+sudo ln -s $PWD/TUPA.py  /usr/local/bin/
 ```
 
 

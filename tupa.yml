@@ -1,0 +1,10 @@
+name: tupa
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - mdanalysis=2.4
+  - numpy=1.24
+  - python=3.11
