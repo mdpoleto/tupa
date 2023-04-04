@@ -33,6 +33,12 @@ environment containing the necessary dependencies.
 sudo ln -s $PWD/TUPA.py  /usr/local/bin/
 ```
 
+4) To test **TUPÃ** installation, activate the conda environment (```conda activate tupa```) and run:
+```
+python check_install.py
+```
+This will trigger 4 tests and all should pass with a final message "OK".
+
 
 ## TUPÃ Usage
 **TUPÃ** calculations are based on parameters that are provided via a configuration file,
