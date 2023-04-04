@@ -7,6 +7,9 @@ not2git
 *.pse
 *.agr
 *.xcf
+tests/__pycache__
+tests/tupa_test
+
 
 # Prerequisites
 *.d

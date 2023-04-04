@@ -1,0 +1,43 @@
+PSF CMAP CHEQ XPLOR
+
+       2 !NTITLE
+* NONE *                                                                        
+*  DATE:     3/31/23     15:47:16      CREATED BY USER: mdpoleto                
+
+       3 !NATOM
+       1 HETA 1    MG   MG   MG      2.00000       24.3050           0   0.00000     -0.301140E-02
+       2 HETB 1    CLA  CLA  CLA    -1.00000       35.4500           0   0.00000     -0.301140E-02
+       3 HETC 1    CLA  CLA  CLA    -1.00000       35.4500           0   0.00000     -0.301140E-02
+
+       0 !NBOND: bonds
+
+
+       0 !NTHETA: angles
+
+
+       0 !NPHI: dihedrals
+
+
+       0 !NIMPHI: impropers
+
+
+       0 !NDON: donors
+
+
+       0 !NACC: acceptors
+
+
+       0 !NNB
+
+       0       0       0
+
+       3       0 !NGRP NST2
+       0       2       0       1       2       0       2       2       0
+
+       1 !MOLNT
+       1       1       1
+
+       0       0 !NUMLP NUMLPH
+
+       0 !NCRTERM: cross-terms
+
