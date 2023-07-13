@@ -180,8 +180,9 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     for atom in enviroment_selection.atoms:
         residue = str(atom.resname) + "_" + str(atom.resid)
 
-        if residue not in tmp_dict_res.keys():
-            tmp_dict_res[residue] = np.array([])
+        if atom in elecfield_selection.atoms: #ignore solvent atoms
+            if residue not in tmp_dict_res.keys():
+                tmp_dict_res[residue] = np.array([])
 
         Ef_xyz = calc_ElectricField(atom, refposition)
 
@@ -189,7 +190,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
         # upload keys (residues) in dict_res_tmp to include the contribution of
         # each atom in a residue. We will update the dictionary for each residue
-        # in this frame on line 486
+        # in this frame on line 236
         if residue in tmp_dict_res.keys():
             res_tmp_array = tmp_dict_res[residue]
             new_res_tmp_array = np.append(res_tmp_array, [Ef_xyz])
@@ -248,15 +249,15 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
         # Update the total dictionary with values of THIS FRAME
         if r not in results.res_contribution_per_frame.keys():
-            new_res_array1 = np.append(time,resEf)
-            new_res_array2 = np.append(new_res_array1, [resEfprojmag,resEfalignment])
-            results.res_contribution_per_frame[r]  = [new_res_array2]
+            tmp_arr = np.append(resEf,[resEfprojmag,resEfalignment])
+            tmp_arr2 = np.append(time, tmp_arr)
+            results.res_contribution_per_frame[r]  = [tmp_arr2]
         else:
-            new_res_array1 = np.append(time,resEf)
-            new_res_array2 = np.append(new_res_array1, [resEfprojmag,resEfalignment])
-            old_res_array = results.res_contribution_per_frame[r]
-            new_res_array3 = np.append(old_res_array, [new_res_array2], axis=0)
-            results.res_contribution_per_frame[r]  = new_res_array3
+            old_res_array  = results.res_contribution_per_frame[r]
+            tmp_arr = np.append(resEf,[resEfprojmag,resEfalignment])
+            tmp_arr2 = np.append(time, tmp_arr)
+            new_res_array = np.append(old_res_array, [tmp_arr2], axis=0)
+            results.res_contribution_per_frame[r]  = new_res_array
 
 
         if config.mode == "bond":
@@ -269,7 +270,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
                 results.resEFalignment_bond_per_frame[r]  = [new_res_array1]
             else:
                 new_res_array1 = np.append(time, [resEfprojmag_bond,resEfalignment_bond])
-                old_res_array = results.resEFalignment_bond_per_frame[r]
+                old_res_array  = results.resEFalignment_bond_per_frame[r]
                 new_res_array2 = np.append(old_res_array, [new_res_array1], axis=0)
                 results.resEFalignment_bond_per_frame[r]  = new_res_array2
 
