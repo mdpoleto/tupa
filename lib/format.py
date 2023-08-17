@@ -193,7 +193,7 @@ def open_outputs_bond(outdir):
 # - bond_axis_info.dat
 #
 ##############################################################
-def format_efield_out_line(field_array, t=None, lastline = False):
+def fmt_efield_out_line(field_array, t=None, lastline = False):
 	if not lastline:
 		string = "{a:<12}{b: 15.6f}{c: 15.6f}{d: 15.6f}{e: 15.6f}\n".format(a=t, b=field_array[0], c=field_array[1], d=field_array[2],e=field_array[3])
 	else:
@@ -201,12 +201,12 @@ def format_efield_out_line(field_array, t=None, lastline = False):
 	return string
 
 
-def format_res_out_line(field_array):
+def fmt_res_out_line(field_array):
 	string = "{a:<12}{b: 15.6f}{c: 15.6f}{d: 15.6f}{e: 15.6f}\n".format(a=field_array[0], b=field_array[1], c=field_array[2], d=field_array[3],e=field_array[4])
 	return string
 
 
-def format_spatialdev_out_line(field_array,t=None, lastline=False):
+def fmt_spatialdev_out_line(field_array,t=None, lastline=False):
 	if lastline == False:
 		string = "{a:<12}{b: 15.6f}{c: 30.6f}{d: 33.6f}\n".format(a=t, b=field_array[0], c=field_array[1], d=field_array[2])
 	else:
@@ -214,7 +214,7 @@ def format_spatialdev_out_line(field_array,t=None, lastline=False):
 	return string
 
 
-def format_proj_out_line(field_array, t=None, lastline = False, optarr=None):
+def fmt_proj_out_line(field_array, t=None, lastline = False, optarr=None):
 	if not lastline:
 		string = "{a:<12}{b: 15.6f}{c: 15.6f}{d: 15.6f}{e: 15.6f}{f: 15.6f}\n".format(a=t, b=field_array[0], c=field_array[1], d=field_array[2], e=field_array[3], f=optarr[0])
 	else:
@@ -222,7 +222,7 @@ def format_proj_out_line(field_array, t=None, lastline = False, optarr=None):
 	return string
 
 
-def format_align_out_line(field_array, lastline = False):
+def fmt_align_out_line(field_array, lastline = False):
 	if not lastline:
 		string = "{a:<12}{b: 15.6f}{c: 15.6f}\n".format(a=field_array[0], b=field_array[1], c=field_array[2])
 	else:
@@ -230,7 +230,7 @@ def format_align_out_line(field_array, lastline = False):
 	return string
 
 
-def format_rbond_info(field_array):
+def fmt_rbond_info(field_array):
 	rvx, rvy, rvz = field_array[1]
 	rhx, rhy, rhz = field_array[2]
 	list1 = "[" + str(rvx) + "," + str(rvy) + "," + str(rvz) + "]"
@@ -238,7 +238,7 @@ def format_rbond_info(field_array):
 	string = "{a:<12}{b:50s}{c: 11.6f}                    {d:<50s}\n".format(a=field_array[0], b=list1, c=field_array[3], d=list2)
 	return string
 
-def format_probe_position(time, array):
+def fmt_probe_position(time, array):
 	string = "[" + str(array[0]) + ", " + str(array[1]) + ", " + str(array[2]) + "]"
 	string = str(time).ljust(10,' ') +  string.ljust(60,' ') + "\n"
 	return string

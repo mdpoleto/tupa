@@ -120,7 +120,7 @@ if always_redefine_box_flag:
 #####################################
 # Selecting the atoms that exert the electric field
 try:
-    elecfield_selection = u.select_atoms(config.sele_elecfield)
+    env_raw_selection = u.select_atoms(config.sele_elecfield)
 except:
     # Sanity check1: environment selection can not be empty.
     raise ValueError(">>> ERROR: ENVIRONMENT selection (from sele_environment) is empty. Check your selection!\n")
@@ -131,11 +131,11 @@ probe_selection = create_probe_selection(u, config)
 
 
 #####################################
-# Sanity check2: atoms in probe_selection should NOT be in elecfield_selection
+# Sanity check2: atoms in probe_selection should NOT be in env_raw_selection
 # if tmprefposition == probe_selection.center_of_geometry(). Checking that...
 if config.mode == "atom" or config.mode == "bond":
     for atom in probe_selection.atoms:
-        if atom in elecfield_selection.atoms:
+        if atom in env_raw_selection.atoms:
             print(">>> WARNING: Probe atom (" + str(atom) + ") included in Environment selection! Moving on...!\n")
 
 
@@ -155,7 +155,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     else:
         refposition = update_probe_position(u, config, probe_selection)
         # We incorporate the solvent selection around the probe here for each mode
-        enviroment_selection = update_environment(u, config, elecfield_selection, refposition)
+        enviroment_selection = update_environment(u, config, env_raw_selection, refposition)
 
 	#####################################
     # Converting MDanalysis frames using defined dt
@@ -164,7 +164,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     print(timestamp)
 
     # Write the probe coordinates
-    lineprobe = format.format_probe_position(time, refposition)
+    lineprobe = format.fmt_probe_position(time, refposition)
     outprobe.write(lineprobe)
 
     # Dumping a specific frame if asked
@@ -172,7 +172,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 
     #####################################
-    # opening a temporary dictionary to hold the contribution of each residue for each frame
+    # opening a temporary dictionary to hold the contribution of each residue
+    # for each frame
     tmp_dict_res = {}
     tmp_atom_contribution_array = np.array([], dtype='float64')
 
@@ -180,21 +181,18 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     for atom in enviroment_selection.atoms:
         residue = str(atom.resname) + "_" + str(atom.resid)
 
-        if atom in elecfield_selection.atoms: #ignore solvent atoms
-            if residue not in tmp_dict_res.keys():
-                tmp_dict_res[residue] = np.array([])
-
         Ef_xyz = calc_ElectricField(atom, refposition)
 
-        tmp_atom_contribution_array = np.append(tmp_atom_contribution_array, [Ef_xyz])
+        tmp_atom_contribution_array = np.append(tmp_atom_contribution_array, Ef_xyz)
 
-        # upload keys (residues) in dict_res_tmp to include the contribution of
-        # each atom in a residue. We will update the dictionary for each residue
-        # in this frame on line 236
-        if residue in tmp_dict_res.keys():
-            res_tmp_array = tmp_dict_res[residue]
-            new_res_tmp_array = np.append(res_tmp_array, [Ef_xyz])
-            tmp_dict_res[residue] = new_res_tmp_array
+        # upload keys (residues) in tmp_dict_res to include the contribution of
+        # each atom in a residue. We will update results.res_contribution_per_frame
+        # for each residue in this frame at line 233
+
+        # ignore solvent atoms and record only the raw environment atoms
+        # requested in the configuration file
+        if atom in env_raw_selection.atoms:
+            tmp_dict_res = add_to_dict(tmp_dict_res, residue, Ef_xyz)
 
     # reshape the array to sum XYZ vertically
     tmp_atom_contribution_array = np.reshape(tmp_atom_contribution_array, (-1,3))
@@ -206,7 +204,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     results.efield_timeseries[time] = np.append(totalEfmag, totalEf)
 
     # write Efield
-    lineEfield  = format.format_efield_out_line(results.efield_timeseries[time], t=time)
+    lineEfield  = format.fmt_efield_out_line(results.efield_timeseries[time], t=time)
     out.write(lineEfield)
 
     #####################################
@@ -218,18 +216,18 @@ for ts in u.trajectory[0: len(u.trajectory):]:
         results.projection_timeseries[time] = np.append(Efprojmag, Efproj)
 
         # Write Efield projection
-        lineproj = format.format_proj_out_line(results.projection_timeseries[time], t=time, optarr=[proj_direction])
+        lineproj = format.fmt_proj_out_line(results.projection_timeseries[time], t=time, optarr=[proj_direction])
         outproj.write(lineproj)
 
         # Calculate and write percentage of projection alignment
         aligned = alignment(Efprojmag,totalEfmag)*proj_direction
 
         results.projalignment[time] = [angle_deg, aligned]
-        linealig = format.format_align_out_line([time, angle_deg, aligned])
+        linealig = format.fmt_align_out_line([time, angle_deg, aligned])
         outalig.write(linealig)
 
         # Write rbond_info data
-        bondline = format.format_rbond_info([time, rbond_vec, unit_vector(rbond_vec), mag(rbond_vec)])
+        bondline = format.fmt_rbond_info([time, rbond_vec, unit_vector(rbond_vec), mag(rbond_vec)])
         outrbond.write(bondline)
 
 
@@ -238,27 +236,17 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     # values of Efield of each residue in this frame
     for r, contribution in tmp_dict_res.items():
         # reshape the array to sum XYZ vertically
-        contribution = np.reshape(contribution, (-1,3))
         resEf  = np.sum(contribution, axis=0)
         resEfmag = mag(resEf)
+        resEf_array = np.append(resEfmag, resEf)
         # calculate the projection and alignment for each residue
         resEfproj = projection(resEf,totalEf) # resEf can have a higher magnitude than the total field.
         resEfprojmag = mag(resEfproj)
         resEfalignment = alignment(resEfprojmag,totalEfmag) # resEf can have a higher magnitude than the total field,
                                                               # which means % can be > 100%
 
-        # Update the total dictionary with values of THIS FRAME
-        if r not in results.res_contribution_per_frame.keys():
-            tmp_arr = np.append(resEf,[resEfprojmag,resEfalignment])
-            tmp_arr2 = np.append(time, tmp_arr)
-            results.res_contribution_per_frame[r]  = [tmp_arr2]
-        else:
-            old_res_array  = results.res_contribution_per_frame[r]
-            tmp_arr = np.append(resEf,[resEfprojmag,resEfalignment])
-            tmp_arr2 = np.append(time, tmp_arr)
-            new_res_array = np.append(old_res_array, [tmp_arr2], axis=0)
-            results.res_contribution_per_frame[r]  = new_res_array
-
+        resEf_array = np.append(resEf_array,[resEfprojmag,resEfalignment])
+        results.res_contribution_per_frame = add_to_dict(results.res_contribution_per_frame, r, resEf_array)
 
         if config.mode == "bond":
             resEfproj_bond = projection(resEf,rbond_vec)
@@ -279,16 +267,21 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 # Calculate the average contribution of each residue to the total field
 for r, timeseries in results.res_contribution_per_frame.items():
     r = r.partition('_')[2] # ignore resname and keep resid
+    # timeseries[0] = resEfmag
+    # timeseries[1,2,3] = resEfmag
+    # timeseries[4] = resEfprojmag
+    # timeseries[5] = resEfalignment
+    resEfmag       = timeseries[:,0].astype('float64')
     resEfprojmag   = timeseries[:,4].astype('float64')
     resEfalignment = timeseries[:,5].astype('float64')
 
-    resEfmag_avg  = np.average(resEfprojmag)
-    resEfmag_std  = np.std(resEfprojmag)
+    resEfmag_avg  = np.average(resEfmag)
+    resEfmag_std  = np.std(resEfmag)
     resEfalig_avg = np.average(resEfalignment)
     resEfalig_std = np.std(resEfalignment)
 
     # write contribution of each residue
-    lineres = format.format_res_out_line([r, resEfmag_avg, resEfmag_std, resEfalig_avg, resEfalig_std])
+    lineres = format.fmt_res_out_line([r, resEfmag_avg, resEfmag_std, resEfalig_avg, resEfalig_std])
     outres.write(lineres)
 
 if config.mode == 'bond':
@@ -303,9 +296,8 @@ if config.mode == 'bond':
         resEfalig_std_bond = np.std(resEfalignment_bond)
 
         # write contribution of each residue
-        lineresbond = format.format_res_out_line([r, resEfmag_avg_bond, resEfmag_std_bond, resEfalig_avg_bond, resEfalig_std_bond])
+        lineresbond = format.fmt_res_out_line([r, resEfmag_avg_bond, resEfmag_std_bond, resEfalig_avg_bond, resEfalig_std_bond])
         outresbond.write(lineresbond)
-
 
 
 ###############################################################################
@@ -330,7 +322,7 @@ for time,field in results.efield_timeseries.items():
     tmp_spacedev_array = np.array([theta, tmp_projmag, tmp_projalig])
     results.spatialdev = np.append(results.spatialdev, [tmp_spacedev_array])
 
-    lineangle  = format.format_spatialdev_out_line(tmp_spacedev_array, t=time)
+    lineangle  = format.fmt_spatialdev_out_line(tmp_spacedev_array, t=time)
     outangle.write(lineangle)
 
 # reshape the array to allow sum vertically
@@ -340,8 +332,8 @@ avgangle,   avgprojmag, avgprojalig = np.average(results.spatialdev, axis=0)
 stdevangle, stdprojmag, stdprojalig = np.std(results.spatialdev, axis=0)
 
 outangle.write("#---#\n")
-string_avgangle = format.format_spatialdev_out_line([avgangle,   avgprojmag, avgprojalig], lastline = True)
-string_stdangle = format.format_spatialdev_out_line([stdevangle, stdprojmag, stdprojalig], lastline = True)
+string_avgangle = format.fmt_spatialdev_out_line([avgangle,   avgprojmag, avgprojalig], lastline = True)
+string_stdangle = format.fmt_spatialdev_out_line([stdevangle, stdprojmag, stdprojalig], lastline = True)
 outangle.write("#AVG:       " + string_avgangle)
 outangle.write("#STDEV:     " + string_stdangle)
 outangle.close()
@@ -351,8 +343,8 @@ avgmag, avgx,  avgy,  avgz   = avgfield
 stdmag, stdx , stdy,  stdz   = stdfield
 
 out.write("#---#\n")
-string_avgmag = format.format_efield_out_line([avgmag, avgx, avgy, avgz], lastline = True)
-string_stdmag = format.format_efield_out_line([stdmag, stdx, stdy, stdz], lastline = True)
+string_avgmag = format.fmt_efield_out_line([avgmag, avgx, avgy, avgz], lastline = True)
+string_stdmag = format.fmt_efield_out_line([stdmag, stdx, stdy, stdz], lastline = True)
 out.write("#AVG:       " + string_avgmag)
 out.write("#STDEV:     " + string_stdmag)
 
@@ -364,8 +356,8 @@ if config.mode == "bond":
     stdmag, stdx, stdy, stdz   = stdproj
 
     outproj.write("#---#\n")
-    string_avgmag = format.format_proj_out_line([avgmag, avgx, avgy, avgz], lastline = True)
-    string_stdmag = format.format_proj_out_line([stdmag, stdx, stdy, stdz], lastline = True)
+    string_avgmag = format.fmt_proj_out_line([avgmag, avgx, avgy, avgz], lastline = True)
+    string_stdmag = format.fmt_proj_out_line([stdmag, stdx, stdy, stdz], lastline = True)
     outproj.write("#AVG:       " + string_avgmag)
     outproj.write("#STDEV:     " + string_stdmag)
 
@@ -374,8 +366,8 @@ if config.mode == "bond":
     stdevangle, stdevalign = np.std(list(results.projalignment.values()), axis=0)
 
     outalig.write("#---#\n")
-    string_avgalig = format.format_align_out_line([avgangle,   avgalign],   lastline = True)
-    string_stdalig = format.format_align_out_line([stdevangle, stdevalign], lastline = True)
+    string_avgalig = format.fmt_align_out_line([avgangle,   avgalign],   lastline = True)
+    string_stdalig = format.fmt_align_out_line([stdevangle, stdevalign], lastline = True)
     outalig.write("#AVG:       " + string_avgalig)
     outalig.write("#STDEV:     " + string_stdalig)
     outalig.close()

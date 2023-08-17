@@ -332,6 +332,18 @@ def calculate_Efprojection(universe, totalEf, config):
     return Efproj, proj_direction, angle_deg, rbond_vec
 
 
+
+
+def add_to_dict(dict, key, array):
+    if key in dict.keys():
+        prev_array = dict[key]
+        new_array = np.vstack((prev_array, array))
+        dict[key] = new_array
+    else:
+        dict[key] = array
+
+    return dict
+
 class Results:
     def __init__(self):
         self.per_atom_contribution_array = []
@@ -344,15 +356,6 @@ class Results:
         self.projection_timeseries = {}
         self.projalignment = {}
         self.resEFalignment_bond_per_frame = {}
-
-
-    def add_to_res_dict(self, key, array):
-        if key in self.res_contribution_per_frame.keys():
-            prev_array = self.res_contribution_per_frame[key]
-            new_array = np.append(prev_, array, axis=0)
-            self.res_contribution_per_frame[key] = new_array
-        else:
-            self.res_contribution_per_frame[key] = array
 
 
     def add_to_efield(self, key, array):
