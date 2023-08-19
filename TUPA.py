@@ -271,14 +271,24 @@ for r, timeseries in results.res_contribution_per_frame.items():
     # timeseries[1,2,3] = resEfmag
     # timeseries[4] = resEfprojmag
     # timeseries[5] = resEfalignment
-    resEfmag       = timeseries[:,0].astype('float64')
-    resEfprojmag   = timeseries[:,4].astype('float64')
-    resEfalignment = timeseries[:,5].astype('float64')
+    if len(timeseries.shape) > 1: # to handle multiple frames (2D array)
+        resEfmag       = timeseries[:,0].astype('float64')
+        resEfprojmag   = timeseries[:,4].astype('float64')
+        resEfalignment = timeseries[:,5].astype('float64')
 
-    resEfmag_avg  = np.average(resEfmag)
-    resEfmag_std  = np.std(resEfmag)
-    resEfalig_avg = np.average(resEfalignment)
-    resEfalig_std = np.std(resEfalignment)
+        resEfmag_avg  = np.average(resEfmag)
+        resEfmag_std  = np.std(resEfmag)
+        resEfalig_avg = np.average(resEfalignment)
+        resEfalig_std = np.std(resEfalignment)
+    else:                         # to handle a single frame/pdb (1D array)
+        resEfmag       = timeseries[0].astype('float64')
+        resEfprojmag   = timeseries[4].astype('float64')
+        resEfalignment = timeseries[5].astype('float64')
+
+        resEfmag_avg  = np.average(resEfmag)
+        resEfmag_std  = np.std(resEfmag)
+        resEfalig_avg = np.average(resEfalignment)
+        resEfalig_std = np.std(resEfalignment)
 
     # write contribution of each residue
     lineres = format.fmt_res_out_line([r, resEfmag_avg, resEfmag_std, resEfalig_avg, resEfalig_std])
@@ -312,7 +322,7 @@ results.spatialdev = np.array([], dtype='float64')
 
 for time,field in results.efield_timeseries.items():
     # Projection between Efield(t) and average Efield
-    tmp_proj      = projection(field[1:],avgfield[1:]) #excluding the first item
+    tmp_proj      = projection(field[1:],avgfield[1:]) #excluding the first item (magnitude)
     tmp_projmag   = mag(tmp_proj)
     # Alignment between Efield(t) and average Efield
     tmp_projalig     = alignment(tmp_projmag,avgfieldmag)
