@@ -21,6 +21,13 @@ from lib.utils import *
 from lib.config_parser import Configuration
 #####################################
 
+#####################################
+# import tools for parallelization
+import multiprocessing
+from multiprocessing import Pool
+from functools import partial
+#####################################
+
 
 # Parse user input and options
 ap = argparse.ArgumentParser(description=tupa_help.header,
@@ -41,6 +48,8 @@ ap.add_argument('-template', type=str, default=None, required=False, nargs="?", 
                 help='Create a template for input configuration file')
 ap.add_argument('-dumptime', type=int, default=None, required=False, metavar='', nargs='+',
                 help='Choose times (in ps) to dump the coordinates from.')
+ap.add_argument('-ncpus', type=int, default=1, required=False, metavar='',
+                help='Number of CPUS to run calculations on (default: 1).')
 
 cmd = ap.parse_args()
 start = timeit.default_timer()
@@ -73,6 +82,7 @@ if cmd.dumptime is None:
 else:
     dumptime      = cmd.dumptime
 
+n_cpus = int(cmd.ncpus)
 
 #####################################
 # Parsing configuration file and parameters
@@ -172,32 +182,32 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 
     #####################################
-    # opening a temporary dictionary to hold the contribution of each residue
-    # for each frame
-    tmp_dict_res = {}
-    tmp_atom_contribution_array = np.array([], dtype='float64')
+    # Using multiple processes to calculate atomic contribution to the
+    # electric field. Store results as an array like:
+    # [ [ atomid1   array([Xvec1  Yvec1  Zvec1]) ]
+    #   [ atomid2   array([Xvec2  Yvec2  Zvec2]) ]
+    #    ...
+    #   [ atomidN   array([XvecN  YvecN  ZvecN]) ]   ]
 
-    # Iterating over all atoms in environment selection to get their contributions
-    for atom in enviroment_selection.atoms:
-        residue = str(atom.resname) + "_" + str(atom.resid)
+    def calc_atom_contribution(atomid, refposition):
+
+        atom = enviroment_selection.atoms[atomid]
 
         Ef_xyz = calc_ElectricField(atom, refposition)
 
-        tmp_atom_contribution_array = np.append(tmp_atom_contribution_array, Ef_xyz)
+        return [atomid,Ef_xyz]
 
-        # upload keys (residues) in tmp_dict_res to include the contribution of
-        # each atom in a residue. We will update results.res_contribution_per_frame
-        # for each residue in this frame at line 233
+    atomid_values = np.arange(len(enviroment_selection.atoms))
+    run_per_atom = partial(calc_atom_contribution, refposition = refposition)
 
-        # ignore solvent atoms and record only the raw environment atoms
-        # requested in the configuration file
-        if atom in env_raw_selection.atoms:
-            tmp_dict_res = add_to_dict(tmp_dict_res, residue, Ef_xyz)
+    # create a default thread pool
+    with Pool(n_cpus) as worker_pool:
+        pool_results = worker_pool.map(run_per_atom, atomid_values)
 
     # reshape the array to sum XYZ vertically
-    tmp_atom_contribution_array = np.reshape(tmp_atom_contribution_array, (-1,3))
-    # Sum the contributions of all atoms in each axis to get the resultant Efield
-    totalEf  = np.sum(tmp_atom_contribution_array, axis=0)
+    pool_results = np.array(pool_results, dtype=object)
+    per_atom_contributions = np.vstack(pool_results)[:,1] #ignore atomids
+    totalEf  = np.sum(per_atom_contributions, axis=0)
     totalEfmag = mag(totalEf)
 
     # Keep the contributions for each frame so we can use later
@@ -232,12 +242,32 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
 
     #####################################
+    # opening a temporary dictionary to hold the contribution of each residue
+    # for each frame
+    tmp_dict_res = {}
+    for atomic_contribution in pool_results:
+        atomid = atomic_contribution[0]
+        contribution = atomic_contribution[1]
+
+        atom = enviroment_selection.atoms[atomid]
+        residue = str(atom.resname) + "_" + str(atom.resid)
+
+        if atom in env_raw_selection.atoms:
+            tmp_dict_res = add_to_dict(tmp_dict_res, residue, contribution)
+
+    #####################################
     # Update dictionary with the contribution of each residue with the
     # values of Efield of each residue in this frame
     for r, contribution in tmp_dict_res.items():
-        # reshape the array to sum XYZ vertically
-        resEf  = np.sum(contribution, axis=0)
+
+        # account for residues containing 1 single atom
+        if len(contribution.shape) > 1:
+            resEf  = np.sum(contribution, axis=0)
+        else:
+            resEf = contribution
         resEfmag = mag(resEf)
+
+        # start residue array
         resEf_array = np.append(resEfmag, resEf)
         # calculate the projection and alignment for each residue
         resEfproj = projection(resEf,totalEf) # resEf can have a higher magnitude than the total field.
@@ -247,6 +277,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
         resEf_array = np.append(resEf_array,[resEfprojmag,resEfalignment])
         results.res_contribution_per_frame = add_to_dict(results.res_contribution_per_frame, r, resEf_array)
+
 
         if config.mode == "bond":
             resEfproj_bond = projection(resEf,rbond_vec)
@@ -272,18 +303,18 @@ for r, timeseries in results.res_contribution_per_frame.items():
     # timeseries[4] = resEfprojmag
     # timeseries[5] = resEfalignment
     if len(timeseries.shape) > 1: # to handle multiple frames (2D array)
-        resEfmag       = timeseries[:,0].astype('float64')
-        resEfprojmag   = timeseries[:,4].astype('float64')
-        resEfalignment = timeseries[:,5].astype('float64')
+        resEfmag       = timeseries[:,0].astype('float32')
+        resEfprojmag   = timeseries[:,4].astype('float32')
+        resEfalignment = timeseries[:,5].astype('float32')
 
         resEfmag_avg  = np.average(resEfmag)
         resEfmag_std  = np.std(resEfmag)
         resEfalig_avg = np.average(resEfalignment)
         resEfalig_std = np.std(resEfalignment)
     else:                         # to handle a single frame/pdb (1D array)
-        resEfmag       = timeseries[0].astype('float64')
-        resEfprojmag   = timeseries[4].astype('float64')
-        resEfalignment = timeseries[5].astype('float64')
+        resEfmag       = timeseries[0].astype('float32')
+        resEfprojmag   = timeseries[4].astype('float32')
+        resEfalignment = timeseries[5].astype('float32')
 
         resEfmag_avg  = np.average(resEfmag)
         resEfmag_std  = np.std(resEfmag)
@@ -297,8 +328,8 @@ for r, timeseries in results.res_contribution_per_frame.items():
 if config.mode == 'bond':
     for r, timeseries in results.resEFalignment_bond_per_frame.items():
         r = r.partition('_')[2] # ignore resname and keep resid
-        resEfprojmag_bond   = timeseries[:,1].astype('float64')
-        resEfalignment_bond = timeseries[:,2].astype('float64')
+        resEfprojmag_bond   = timeseries[:,1].astype('float32')
+        resEfalignment_bond = timeseries[:,2].astype('float32')
 
         resEfmag_avg_bond  = np.average(resEfprojmag_bond)
         resEfmag_std_bond  = np.std(resEfprojmag_bond)
@@ -318,7 +349,7 @@ stdfield        = np.std(list(results.efield_timeseries.values()), axis=0)
 avgfieldmag     = avgfield[0] # magnitude is the first array item
 
 
-results.spatialdev = np.array([], dtype='float64')
+results.spatialdev = np.array([], dtype='float32')
 
 for time,field in results.efield_timeseries.items():
     # Projection between Efield(t) and average Efield

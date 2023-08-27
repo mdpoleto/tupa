@@ -43,3 +43,6 @@ tests/tupa_test
 *.exe
 *.out
 *.app
+Examples/COORDINATE/runtime_parallel.dat
+Examples/ATOM/runtime_parallel.dat
+benchmark.png

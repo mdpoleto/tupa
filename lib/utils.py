@@ -46,7 +46,7 @@ def projection(v1,v2):
 
 
 def angle_between(v1, v2):
-    """ Returns angle betwee vector v1 and vector v2 """
+    """ Returns angle (in radians) between vector v1 and vector v2 """
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
 
@@ -55,7 +55,18 @@ def angle_between(v1, v2):
 
 
 def calc_ElectricField(atom,refposition):
-    """ Calculate electric field exerted by 'atom' at 'refposition' """
+    """Calculate electric field exerted by 'atom' at 'refposition'
+    Parameters
+    ----------
+    atom: Atom MDA object
+        input DataFrame
+    refposition: np.array
+        numpy array of [X Y Z] coordinates
+    Returns
+    -------
+    Ef: np.array
+        numpy array of [X Y Z] electric field vectors
+    """
     # Set Epsilon to your medium (in C**2/N*(m**2))
     Epsilon = 8.8541878128e-12
     k = 1 / (4 * np.pi * Epsilon)  # 8987551792.261173  (N*m**2)/C**2
@@ -276,7 +287,7 @@ def update_probe_position(universe, config, probe_selection):
 
 
 def update_environment(universe, config, elecfield_selection, refposition):
-
+    """ Update environment to include solvent selection around a radius """
     # We incorporate the solvent selection around the probe here for each mode
     if config.include_solvent == True:
         if config.mode == "atom":
@@ -315,6 +326,7 @@ def update_environment(universe, config, elecfield_selection, refposition):
 
 
 def calculate_Efprojection(universe, totalEf, config):
+    """ Calculate Electric Field projection onto bond"""
     # Calculate efield projection
     bond1 = universe.select_atoms(config.selbond1, updating=True)
     bond2 = universe.select_atoms(config.selbond2, updating=True)
@@ -333,6 +345,7 @@ def calculate_Efprojection(universe, totalEf, config):
 
 
 def add_to_dict(dict, key, array):
+    """ Insert an array into a dictionary accounting for existing keys """
     if key in dict.keys():
         prev_array = dict[key]
         new_array = np.vstack((prev_array, array))
@@ -342,9 +355,10 @@ def add_to_dict(dict, key, array):
 
     return dict
 
+
 class Results:
     def __init__(self):
-        self.per_atom_contribution_array = []
+        self.tmp_dict_res = {}
         self.res_contribution_per_frame = {}
 
         self.efield_timeseries = {}
