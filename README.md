@@ -111,6 +111,29 @@ An example is provided [HERE](https://github.com/mdpoleto/tupa/tree/main/Example
 
 **pyTUPÃmol** is a PyMOL plugin to plot electric field vectors alongside other molecules. By definition, an arrow CGO object is created starting at a given coordinate [X,Y,Z] and has the size of the magnitude of the provided electric field.
 
+```
+DESCRIPTION
+	Allows the user to create arrows representing:
+	1) vector between 2 selected atoms (atom1 -> atom2)
+	2) Electric field vectors midway between 2 picked atoms ([atom1+atom2]/2)
+	3) Electric field vector at a given atom or coordinate
+ARGUMENTS
+	bond_atom1 = string: single atom selection or list of 3 floats {default: pk1}
+	bond_atom2 = string: single atom selection or list of 3 floats {default: pk2}
+	point      = string: single atom selection or list of 3 floats {default: pk1}
+
+	efield      = list of 3 floats containing the XYZ electric field components {default: [1.0. 1.0, 1.0]}
+	radius      = float: arrow radius {default: 0.1}
+	scale       = float: scale factor to change arrow size {default: 0.0}
+	hlength     = float: length of arrow head in percentage of efield magnitude {default: 30%}
+	hradius     = float: radius of arrow head in percentage of radius {default: 2*radius}
+	color       = string: one or two color names {default: blue red}
+	stdev       = angle to define the spatial standard deviation of the efield
+	efield_name = string: name of CGO object for the efield vector
+	stdev_name  = string: name of CGO object for the 3D standard deviation
+ ```
+
+
 Our plugin has 3 functions that can be called via command line within PyMOL:
 
 * **efield_point**: create a vector at a given atom or set of coordinates.
