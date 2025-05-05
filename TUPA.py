@@ -128,21 +128,22 @@ if always_redefine_box_flag:
     u.dimensions = config.boxdimensions
 
 #####################################
+# Sanity check1: sele_environment and probe_selection should NOT be empty
 # Selecting the atoms that exert the electric field
 try:
     env_raw_selection = u.select_atoms(config.sele_elecfield)
+    if not env_raw_selection:
+        # Sanity check1: environment selection can not be empty.
+        raise ValueError(">>> ERROR: ENVIRONMENT selection (from sele_environment) is empty. Check your selection!\n")
 except:
-    # Sanity check1: environment selection can not be empty.
-    raise ValueError(">>> ERROR: ENVIRONMENT selection (from sele_environment) is empty. Check your selection!\n")
+    # Sanity check1: environment selection must be parsed.
+    raise ValueError(">>> ERROR: ENVIRONMENT selection (from sele_environment) cannot be parsed. Check your selection!\n")
 
-#####################################
-# This is us being very verbose so people actually know what is happening
 probe_selection = create_probe_selection(u, config)
 
 
 #####################################
 # Sanity check2: atoms in probe_selection should NOT be in env_raw_selection
-# if tmprefposition == probe_selection.center_of_geometry(). Checking that...
 if config.mode == "atom" or config.mode == "bond":
     for atom in probe_selection.atoms:
         if atom in env_raw_selection.atoms:
@@ -157,21 +158,17 @@ print("\n>>> Calculating Electric Field:")
 results = Results() # Creating the Result Object carrying the analyzes results
 
 
-for ts in u.trajectory[0: len(u.trajectory):]:
+for ts in u.trajectory:
     #####################################
     # Update environment selections and probe position
-    if len(probe_selection) == 0:
-        raise ValueError(">>> ERROR: PROBE selection is empty! Check your selection!\n")
-    else:
-        refposition = update_probe_position(u, config, probe_selection)
-        # We incorporate the solvent selection around the probe here for each mode
-        enviroment_selection = update_environment(u, config, env_raw_selection, refposition)
+    refposition = update_probe_position(u, config, probe_selection)
+    # We incorporate the solvent selection around the probe here for each mode
+    enviroment_selection = update_environment(u, config, env_raw_selection, refposition)
 
 	#####################################
-    # Converting MDanalysis frames using defined dt
+    # Converting MDanalysis frames using defined dt in picoseconds
     time = config.dt * (int(ts.frame) + 1)
-    timestamp = "Time (ps) = {0:<12d} -> (Probe position: {1})".format(time,refposition)
-    print(timestamp)
+    print("Time (ps) = {0:<12d} -> (Probe position: {1})".format(time,refposition))
 
     # Write the probe coordinates
     lineprobe = format.fmt_probe_position(time, refposition)
@@ -179,7 +176,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 
     # Dumping a specific frame if asked
     dump_coor_time(u, time, dumptime, enviroment_selection, outdir)
-
 
     #####################################
     # Using multiple processes to calculate atomic contribution to the
@@ -192,7 +188,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     def calc_atom_contribution(atomid, refposition):
 
         atom = enviroment_selection.atoms[atomid]
-
         Ef_xyz = calc_ElectricField(atom, refposition)
 
         return [atomid,Ef_xyz]
@@ -204,10 +199,8 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     with Pool(n_cpus) as worker_pool:
         pool_results = worker_pool.map(run_per_atom, atomid_values)
 
-    # reshape the array to sum XYZ vertically
-    pool_results = np.array(pool_results, dtype=object)
-    per_atom_contributions = np.vstack(pool_results)[:,1] #ignore atomids
-    totalEf  = np.sum(per_atom_contributions, axis=0)
+    per_atom_Ef = np.vstack(np.array(pool_results, dtype=object))[:,1] #ignore atomids
+    totalEf  = np.sum(per_atom_Ef, axis=0)
     totalEfmag = mag(totalEf)
 
     # Keep the contributions for each frame so we can use later
@@ -218,7 +211,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
     out.write(lineEfield)
 
     #####################################
-    # Write information exclusive to BOND mode
+    # Calculate information exclusive to BOND mode (Projection of Efield to bond)
     if config.mode == "bond":
         Efproj, proj_direction, angle_deg, rbond_vec = calculate_Efprojection(u, totalEf, config)
         Efprojmag = mag(Efproj)*proj_direction
@@ -250,7 +243,7 @@ for ts in u.trajectory[0: len(u.trajectory):]:
         contribution = atomic_contribution[1]
 
         atom = enviroment_selection.atoms[atomid]
-        residue = str(atom.resname) + "_" + str(atom.resid)
+        residue = str(atom.segid) + "_" + str(atom.resid)
 
         if atom in env_raw_selection.atoms:
             tmp_dict_res = add_to_dict(tmp_dict_res, residue, contribution)
@@ -279,10 +272,16 @@ for ts in u.trajectory[0: len(u.trajectory):]:
         results.res_contribution_per_frame = add_to_dict(results.res_contribution_per_frame, r, resEf_array)
 
 
+        # Calculate residue contribution to the projected efield
         if config.mode == "bond":
             resEfproj_bond = projection(resEf,rbond_vec)
-            resEfprojmag_bond = mag(resEfproj_bond)
-            resEfalignment_bond = alignment(resEfprojmag_bond,totalEfmag)
+
+            # Calculate projection direction (either 1 or -1)
+            angle_deg = angle_between(resEfproj_bond,rbond_vec)
+            proj_direction = np.cos(angle_deg)/abs(np.cos(angle_deg))
+
+            resEfprojmag_bond = mag(resEfproj_bond)*proj_direction
+            resEfalignment_bond = alignment(resEfprojmag_bond,totalEfmag)            
 
             if r not in results.resEFalignment_bond_per_frame.keys():
                 new_res_array1 = np.append(time, [resEfprojmag_bond,resEfalignment_bond])
@@ -297,7 +296,6 @@ for ts in u.trajectory[0: len(u.trajectory):]:
 ###############################################################################
 # Calculate the average contribution of each residue to the total field
 for r, timeseries in results.res_contribution_per_frame.items():
-    r = r.partition('_')[2] # ignore resname and keep resid
     # timeseries[0] = resEfmag
     # timeseries[1,2,3] = resEfmag
     # timeseries[4] = resEfprojmag
@@ -327,7 +325,7 @@ for r, timeseries in results.res_contribution_per_frame.items():
 
 if config.mode == 'bond':
     for r, timeseries in results.resEFalignment_bond_per_frame.items():
-        r = r.partition('_')[2] # ignore resname and keep resid
+        #r = r.partition('_')[2] # ignore resname and keep resid
         resEfprojmag_bond   = timeseries[:,1].astype('float32')
         resEfalignment_bond = timeseries[:,2].astype('float32')
 
@@ -358,7 +356,7 @@ for time,field in results.efield_timeseries.items():
     # Alignment between Efield(t) and average Efield
     tmp_projalig     = alignment(tmp_projmag,avgfieldmag)
     #theta = Angle between Efield(t) and average Efield
-    theta     = np.degrees(angle_between(field, avgfield))
+    theta     = angle_between(field, avgfield)
 
     tmp_spacedev_array = np.array([theta, tmp_projmag, tmp_projalig])
     results.spatialdev = np.append(results.spatialdev, [tmp_spacedev_array])
