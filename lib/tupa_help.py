@@ -36,7 +36,7 @@ selbond2            = resname LIG and name C1
 probecoordinate     = [0,0,0]
 file_of_coordinates = /path/to/file/of/list/of/probe/coordinates
 
-remove_self         = True    # For COORDINATE mode only, whether remove the
+remove_self         = True    # For COORDINATE and LIST modes only, whether remove the
                               # contribution of self within a cutoff of the coordinate
 remove_cutoff       = 1       # in Angstrom
 

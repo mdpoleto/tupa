@@ -31,8 +31,8 @@ def print_run_info(parsed_configuration, top_file, traj_file, outdir):
 
 	mode              = parsed_configuration.mode
 	if mode == "atom":
-	    selatom = parsed_configuration.selatom
-	    remove_cutoff = 0
+		selatom = parsed_configuration.selatom
+		remove_cutoff = 0
 	elif mode == "bond":
 	    selbond1 = parsed_configuration.selbond1
 	    selbond2 = parsed_configuration.selbond2
@@ -239,6 +239,6 @@ def fmt_rbond_info(field_array):
 	return string
 
 def fmt_probe_position(time, array):
-	string = "[" + str(array[0]) + ", " + str(array[1]) + ", " + str(array[2]) + "]"
-	string = str(time).ljust(10,' ') +  string.ljust(60,' ') + "\n"
+	string = str(time).ljust(10,' ') + "[{a: 6.4f}, {b: 6.4f}, {c: 6.4f}]\n".format(a=array[0], b=array[1], c=array[2])
+	#string = str(time).ljust(10,' ') +  string.ljust(60,' ') + "\n"
 	return string
