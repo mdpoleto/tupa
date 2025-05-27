@@ -228,12 +228,12 @@ def create_probe_selection(universe, config):
                         listcoorY = float(coorline.split(",")[1])
                         listcoorZ = float(coorline.split(",")[2])
                     except:
-                        raise ValueError(""">>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X Y Z). Check your inputs!\n""")
+                        raise ValueError(""">>> ERROR: File of coordinates could not be parsed! Expecting floats or integers (X, Y, Z). Check your inputs!\n""")
                     
                     tmpcoorlist = np.array([listcoorX, listcoorY, listcoorZ])
                     probe_selection.append(tmpcoorlist)
                 else:
-                    raise ValueError(""">>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X Y Z). Check your inputs!\n""")
+                    raise ValueError(""">>> ERROR: File of coordinates could not be parsed! Expecting 3 columns (X, Y, Z). Check your inputs!\n""")
 
         # Sanity check: list of coordinates should have the same length as the trajectory
         if len(probe_selection) != len(universe.trajectory):
